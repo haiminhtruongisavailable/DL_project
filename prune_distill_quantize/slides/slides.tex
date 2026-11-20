@@ -1,0 +1,266 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{fontspec}
+\setsansfont{LiberationSans}[
+  Path=/usr/share/fonts/truetype/liberation/,
+  Extension=.ttf,
+  UprightFont=*-Regular,
+  BoldFont=*-Bold,
+  ItalicFont=*-Italic,
+  BoldItalicFont=*-BoldItalic]
+\setmonofont{LiberationMono}[
+  Path=/usr/share/fonts/truetype/liberation/,
+  Extension=.ttf,
+  UprightFont=*-Regular,
+  BoldFont=*-Bold,
+  Scale=0.85]
+\usepackage[vietnamese]{babel}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{array}
+
+\usetheme{default}
+\setbeamercolor{structure}{fg=black}
+\setbeamercolor{frametitle}{bg=blue!12!white,fg=black}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1.1ex,leftskip=1.2em,rightskip=1.2em]{frametitle}%
+      \usebeamerfont{footline}DL-10 \hfill \insertframenumber/\inserttotalframenumber%
+    \end{beamercolorbox}}%
+}
+\setbeamersize{text margin left=0.7cm,text margin right=0.7cm}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+
+\title{Nén CNN trên Fashion-MNIST}
+\subtitle{Pruning, INT8 PTQ, knowledge distillation}
+\author{Trương Hải Minh \quad MSSV 24100706}
+\date{18/11/2026}
+\institute{Trường Đại học Phenikaa \quad Khoa Điện-Điện tử}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Bài toán và ba vạch}
+  Một CNN đã huấn luyện trên Fashion-MNIST được chuyển sang TensorFlow Lite, rồi nén.
+  Tập kiểm tra là 10{,}000 ảnh chính thức.
+  \vspace{0.35em}
+  Ba vạch bắt buộc:
+  \begin{itemize}
+    \item Độ giảm accuracy \(\le 2\) pp so với 0.9158.
+    \item Phần cắt kích thước \(\ge 50\%\) trên cả raw (mẫu số 1690.108 KB) và gzip (mẫu số 1567.603 KB).
+    \item Tương đương sau chuyển đổi: sai lệch đầu ra lớn nhất Keras vs TFLite (float, trước lượng tử hoá) \(\le 1\times 10^{-4}\).
+  \end{itemize}
+  \vspace{0.15em}
+  Vạch Keras–TFLite kiểm một lần trên mô hình float và PASS: lệch lớn nhất \(1.7583370208740234\times 10^{-6}\).
+  Gzip là mức 9, mốc thời gian 0. KB là số byte chia cho 1000.
+  Float baseline là mốc, không bị chấm.
+  PASS trên cả ba vạch của dòng: small from-scratch, INT8, distilled student, pruned INT8, distilled pruned INT8.
+  Pruned FAIL (raw): gzip cắt 60.31\%, raw cắt 0.00\%.
+  Stacked, default config FAIL (acc): giảm 3.03 pp, raw cắt 93.41\%, gzip cắt 96.84\%.
+\end{frame}
+
+\begin{frame}{Mô hình gốc}
+  Dòng float baseline trong bảng kết quả:
+  \begin{center}
+  \begin{tabular}{lr}
+    \toprule
+    Hạng mục & Giá trị \\
+    \midrule
+    test accuracy & 0.9158 \\
+    độ giảm & 0.00 pp \\
+    raw & 1690.108 KB \\
+    gzip & 1567.603 KB \\
+    phần cắt raw / gzip & 0.00\% / 0.00\% \\
+    p50 / p95 & 0.155 ms / 0.226 ms \\
+    bộ nhớ đỉnh & 7108 kB \\
+    kết quả & reference \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  Mọi độ giảm, mọi phần cắt raw và mọi phần cắt gzip ở các dòng sau lấy mẫu số từ dòng này.
+\end{frame}
+
+\begin{frame}{Pruning}
+  Magnitude pruning trên cả mô hình, độ thưa cuối 0.70.
+  Dòng quét \texttt{prune, sf, 0.7} và dòng pruned của bảng kết quả cùng cho 0.9099.
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Accuracy 0.9099, độ giảm 0.59 pp.
+    \item Raw vẫn 1690.108 KB: mảng float được giữ đủ.
+    \item Gzip 622.146 KB, phần cắt gzip 60.31\%. Phần cắt raw 0.00\%.
+    \item p50 tăng từ 0.155 ms lên 0.179 ms.
+    \item Kết quả: FAIL (raw). Vạch gzip và vạch độ chính xác đều PASS.
+  \end{itemize}
+  \vspace{0.2em}
+  Trên quét, \(s_f=0.5\) còn 0.9178 nhưng phần cắt chỉ 40.97\%.
+  \(s_f=0.9\) cắt 82.16\% và accuracy còn 0.8149.
+\end{frame}
+
+\begin{frame}{INT8 post-training quantization}
+  Full-integer INT8, per-channel bật, 300 ảnh hiệu chuẩn.
+  Dòng INT8 của bảng kết quả:
+  \begin{itemize}
+    \item Accuracy 0.9150, độ giảm 0.08 pp.
+    \item Raw 431.992 KB, phần cắt raw 74.44\%. Gzip 383.123 KB, phần cắt gzip 75.56\%.
+    \item p50 0.068 ms, p95 0.079 ms, bộ nhớ đỉnh 4684 kB.
+    \item Kết quả: PASS.
+  \end{itemize}
+  \vspace{0.2em}
+  Trên quét, tắt per-channel giữ accuracy 0.9149 và hạ gzip xuống 310.928 KB.
+  Float16 có gzip 782.081 KB, phần cắt 50.11\%.
+  Calibration 1000 ảnh cho 0.9152 và gzip 383.097 KB.
+\end{frame}
+
+\begin{frame}{Knowledge distillation}
+  Học sinh hẹp, so với học sinh hard-label cùng kích thước.
+  \vspace{0.3em}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Dòng & accuracy & độ giảm & gzip KB & phần cắt \\
+    \midrule
+    small from-scratch & 0.8974 & 1.84 pp & 384.088 & 75.50\% \\
+    distilled student & 0.9011 & 1.47 pp & 384.058 & 75.50\% \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.45em}
+  Cặp trong bảng lệch \(0.9011-0.8974=0.0037\). Đây là một seed.
+  Trên năm seed, phần tăng là \(-0.0009 \pm 0.0041\), nên không có phần tăng đáng tin.
+  Raw của cả hai dòng là 415.612 KB, phần cắt raw 75.41\%.
+  p50 của cả hai là 0.025 ms.
+  Cả hai dòng PASS trên cả ba vạch của dòng.
+\end{frame}
+
+\begin{frame}{Xếp distillation, pruning, INT8}
+  Cả hai lần xếp distillation, rồi pruning, rồi INT8.
+  Lịch pruning giống nhau: PolynomialDecay, \(p=3\), tần suất 1, 4 epoch, mất mát distillation \(T=4\), \(\alpha=0.5\), Adam \(1\times 10^{-4}\), 300 ảnh hiệu chuẩn.
+  \vspace{0.25em}
+  Hai điểm khác: học sinh xuất phát, và \(s_f\).
+  Cấu hình mặc định nạp học sinh distillation đã lưu và cắt tới \(s_f=0.70\).
+  Lần đã chỉnh huấn luyện \texttt{make\_cnn(8)} mới trong cùng lượt và cắt tới \(s_f=0.30\).
+  \vspace{0.7em}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lrrrrrl}
+    \toprule
+    Dòng & acc & giảm & raw cắt \% & gzip KB & gzip cắt \% & kết quả \\
+    \midrule
+    distilled pruned INT8 & 0.8992 & 1.66 & 93.41 & 87.025 & 94.45 & PASS \\
+    stacked, default config & 0.8855 & 3.03 & 93.41 & 49.483 & 96.84 & FAIL (acc) \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Bảng kết quả đã chốt}
+  \begin{center}
+  \scriptsize
+  \setlength{\tabcolsep}{2.4pt}
+  \begin{tabular}{lrrrrrrrl}
+    \toprule
+    Dòng & acc & giảm & raw cắt \% & gzip KB & gzip cắt \% & p50 & đỉnh kB & kết quả \\
+    \midrule
+    float baseline & 0.9158 & 0.00 & 0.00 & 1567.603 & 0.00 & 0.155 & 7108 & reference \\
+    small from-scratch & 0.8974 & 1.84 & 75.41 & 384.088 & 75.50 & 0.025 & 4692 & PASS \\
+    pruned & 0.9099 & 0.59 & 0.00 & 622.146 & 60.31 & 0.179 & 7244 & FAIL (raw) \\
+    INT8 & 0.9150 & 0.08 & 74.44 & 383.123 & 75.56 & 0.068 & 4684 & PASS \\
+    distilled student & 0.9011 & 1.47 & 75.41 & 384.058 & 75.50 & 0.025 & 4636 & PASS \\
+    pruned INT8 & 0.9102 & 0.56 & 74.44 & 181.994 & 88.39 & 0.070 & 4648 & PASS \\
+    distilled pruned INT8 & 0.8992 & 1.66 & 93.41 & 87.025 & 94.45 & 0.008 & 4012 & PASS \\
+    stacked, default config & 0.8855 & 3.03 & 93.41 & 49.483 & 96.84 & 0.015 & 4016 & FAIL (acc) \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \vspace{0.2em}
+  Năm dòng nén PASS: small from-scratch, INT8, distilled student, pruned INT8, distilled pruned INT8.
+  Pruned qua gzip và trượt raw. Dòng mặc định qua cả hai phần cắt và trượt độ chính xác.
+\end{frame}
+
+\begin{frame}{Quét một nút: pruning và distillation}
+  Mỗi lần chỉ đổi một nút. Vạch đứt là giá trị đã chốt.
+  \vspace{0.15em}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_prune_sf.png}\\[0.1em]
+      {\scriptsize \(s_f\): 0.5 là 0.9178; 0.7 là 0.9099; 0.9 là 0.8149.}
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_prune_epochs.png}\\[0.1em]
+      {\scriptsize Epoch 1 / 4 / 8: 0.9031, 0.9099, 0.9141.}
+  \end{columns}
+  \vspace{0.85em}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_distill_T.png}\\[0.1em]
+      {\scriptsize \(T=1\) một seed 0.9055; \(T=4\) là 0.8996; \(T=8\) là 0.8986.}
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_distill_alpha.png}\\[0.1em]
+      {\scriptsize \(\alpha=0\) là 0.9022; \(\alpha=0.5\) là 0.8996; \(\alpha=0.9\) là 0.8960.}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Quét một nút: bề rộng, hiệu chuẩn, seed}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_filters.png}\\[0.1em]
+      {\scriptsize 4 kênh distilled: 0.8839, gzip 194.474 KB.}
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_dense.png}\\[0.1em]
+      {\scriptsize Dense 64 distilled 0.8905; dense 256 distilled 0.9062.}
+  \end{columns}
+  \vspace{0.85em}
+  \begin{columns}[T]
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[height=2.15cm]{figures/sweep_int8_cal.png}\\[0.1em]
+      {\scriptsize 10, 100 và 300 ảnh: 0.9150. 1000 ảnh: 0.9152.}
+    \column{0.49\textwidth}
+      \small
+      Năm seed, distilled:\\
+      0.8996, 0.8996, 0.8973, 0.8990, 0.8955.\\
+      Trung bình 0.8982.\\[0.25em]
+      Hard-label:\\
+      0.9022, 0.8989, 0.9044, 0.8979, 0.8921.\\
+      Trung bình 0.8991.\\[0.25em]
+      Chạy lại seed 42: 0.8985 và 0.8996.
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Hạn chế}
+  \begin{itemize}
+    \item Một tập Fashion-MNIST, một lần chia 54{,}000 / 6{,}000 / 10{,}000.
+    \item Quét một nút dùng một seed, trừ tâm distillation có năm seed.
+    \item Chạy lại seed 42 của tâm distilled ra 0.8985, lần đầu là 0.8996.
+      Huấn luyện không bit-deterministic.
+    \item Quét không có cột p50, p95 hay bộ nhớ đỉnh.
+    \item Trung bình năm seed của phần tăng distillation là \(-0.0009\).
+      Phần tăng này không đáng tin.
+    \item Cấu hình xếp đã chỉnh được chọn sau khi xem test accuracy; không có lựa chọn riêng trên validation.
+    \item Pruning giữ raw 1690.108 KB.
+      INT8 là PTQ, lưới lượng tử không có mặt lúc huấn luyện.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Kết luận}
+  Ba vạch: độ giảm \(\le 2\) pp so với 0.9158; phần cắt \(\ge 50\%\) trên raw (1690.108 KB) và gzip (1567.603 KB); Keras vs TFLite float \(\le 1\times 10^{-4}\), PASS một lần ở \(1.7583370208740234\times 10^{-6}\).
+  \vspace{0.3em}
+  \begin{itemize}
+    \item Pruning: giảm 0.59 pp, gzip cắt 60.31\%, raw cắt 0.00\%. FAIL (raw).
+    \item INT8: giảm 0.08 pp, raw cắt 74.44\%, gzip cắt 75.56\%, p50 0.068 ms. PASS.
+    \item Hai học sinh 8 kênh cùng PASS. Cặp 0.9011 và 0.8974 là một seed; năm seed cho \(-0.0009 \pm 0.0041\).
+    \item Xếp đã chỉnh PASS: gzip 87.025 KB, raw cắt 93.41\%, gzip cắt 94.45\%, giảm 1.66 pp, p50 0.008 ms.
+    \item Cấu hình mặc định FAIL (acc): raw cắt 93.41\%, gzip cắt 96.84\%, giảm 3.03 pp.
+  \end{itemize}
+  \vspace{0.25em}
+  Trong các dòng PASS, gzip nhỏ nhất vẫn nằm trong vạch 2 pp.
+\end{frame}
+
+\end{document}

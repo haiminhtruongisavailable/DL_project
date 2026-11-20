@@ -1,0 +1,9 @@
+{
+  "value": 1.7583370208740234e-06,
+  "n_images": 10000,
+  "keras_file": "locked/baseline.keras",
+  "tflite_file": "current/baseline_v2.tflite",
+  "script": "scripts/check_equivalence.py",
+  "note": "logic recreated from the 2026-11-18 one-off run; value not re-run",
+  "date": "2026-11-18"
+}
