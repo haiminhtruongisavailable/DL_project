@@ -1,12 +1,13 @@
 # DL-10: nén CNN trên Fashion-MNIST
 
-Bản nộp này lấy file đã đóng băng ngày 2026-11-20, rồi thêm model và code để chạy lại. SHA-256 của bản đóng băng nằm ở `MANIFEST.txt`.
+Bản nộp cuối, ngày 2026-11-21. Báo cáo không còn Phụ lục A. Ánh xạ từng dòng kết quả sang file nằm ở `GUIDE.md`. SHA-256 của các file nộp nằm ở `MANIFEST.txt`.
 
-`notebook/dl10_v3.ipynb` khác bản đóng băng đúng một dòng: `ROOT`. Vì vậy SHA-256 của sổ này không khớp dòng `dl10_v3.ipynb` trong `MANIFEST.txt`. Output đã lưu không đổi.
+`notebook/dl10_v3.ipynb` trỏ `ROOT` tới thư mục cha của `notebook/`, tức gốc repo này. Output đã lưu không đổi.
 
 ## Thư mục
 
-- `report/`: báo cáo (`main.tex`) và `DL10_report_final.pdf` (33 trang).
+- `GUIDE.md`: tệp đã đo, cột của `results.csv`, mẫu số kích thước, và mã băm của `locked/baseline.keras`.
+- `report/`: báo cáo (`main.tex`), `figures/`, và `DL10_report_final.pdf` (35 trang).
 - `notebook/`: `dl10_v3.ipynb`. Mở sổ với thư mục làm việc là `notebook/`. Khi đó `ROOT` là thư mục cha, tức gốc repo này.
 - `results/`: `results.csv` (tám dòng đã chốt), `sweep.csv` (quét một nút), `equivalence.json` (lệch Keras–TFLite đã lưu).
 - `scripts/`: `check_equivalence.py`. Script chỉ đọc model, không ghi `locked/`.

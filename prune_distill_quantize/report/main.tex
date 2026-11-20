@@ -38,6 +38,10 @@
 \pretocmd{\section}{\clearpage}{}{}
 \usepackage{array}
 \usepackage{enumitem}
+\usepackage{caption}
+\captionsetup{font=normalsize,labelfont=normalsize,textfont=normalsize}
+\AtBeginEnvironment{tabular}{\normalfont\normalsize\let\ttfamily\rmfamily}
+\AtBeginEnvironment{tabularx}{\normalfont\normalsize\let\ttfamily\rmfamily}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{pdflscape}
@@ -70,15 +74,15 @@ Khoa Điện-Điện tử\\[1em]
 \vspace{1.2cm}
 \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{4.6cm}|Y|}
 \hline
-Học phần & TODO \\ \hline
-Mã học phần & TODO \\ \hline
+Học phần & Học sâu \\ \hline
+Mã học phần & EEE703035 \\ \hline
 Tên bài & DL-10 --- nén mạng tích chập trên Fashion-MNIST \\ \hline
 Họ và tên sinh viên & Trương Hải Minh \\ \hline
 Mã số sinh viên & 24100706 \\ \hline
-Lớp & TODO \\ \hline
-Giảng viên hướng dẫn & TODO \\ \hline
-Kho mã nguồn & TODO \\ \hline
-Ngày & 18/11/2026 \\ \hline
+Lớp & N01 \\ \hline
+Giảng viên hướng dẫn & TS.Nguyễn Văn Tới \\ \hline
+Kho mã nguồn & \url{https://github.com/haiminhtruongisavailable/DL_project/tree/main/prune_distill_quantize} \\ \hline
+Ngày & 21/11/2026 \\ \hline
 \end{tabularx}
 \newpage
 \setcounter{tocdepth}{2}
@@ -141,7 +145,7 @@ Xếp một phép lên một mạng đã nhỏ có thể cộng sai số, dù t�
 \begin{itemize}[leftmargin=1.4em,itemsep=0.3em]
 \item \textbf{Độ chính xác kiểm tra} \(a\): tỉ lệ ảnh đoán đúng trên 10{,}000 ảnh kiểm tra.
 \item \textbf{Độ giảm (pp)}: hiệu trực tiếp giữa hai độ chính xác, \((0.9158 - a)\times 100\). Ví dụ \(a = 0.8992\) cho độ giảm 1.66 pp.
-\item \textbf{Kích thước thô}: số byte của file TFLite khi chưa nén; KB là số byte chia 1000.
+\item \textbf{Kích thước thô}: số byte của file TFLite khi chưa nén. Đơn vị kích thước tệp trong báo cáo chỉ là KB, bằng số byte chia cho 1000 và giữ 3 chữ số thập phân; 1 MB theo cùng cách chia bằng 1000 KB, tức số byte chia cho \(1{,}000{,}000\).
 \item \textbf{Kích thước gzip}: số byte của chính file TFLite đó sau khi nén không mất dữ liệu bằng gzip. Các số không lặp lại (từ pruning) và các mã int8 lặp lại được nén gọn, nên gzip phản ánh phần dư thừa mà kích thước thô không thấy.
 \item \textbf{Phần cắt thô}: \(\left(1 - \dfrac{\text{raw}_{\text{dòng}}}{\text{raw}_{\text{gốc}}}\right)\times 100\) phần trăm. Mẫu số là kích thước thô của float baseline, 1690.108 KB, cột \texttt{raw\_KB} của \texttt{results/results.csv}.
 \item \textbf{Phần cắt gzip}: \(\left(1 - \dfrac{\text{gzip}_{\text{dòng}}}{\text{gzip}_{\text{gốc}}}\right)\times 100\) phần trăm. Mẫu số là 1567.603 KB, cột \texttt{gzip\_KB} của cùng dòng float baseline.
@@ -165,7 +169,7 @@ Mục 5 định nghĩa các cột và giao thức đo.
 Mục 6 đọc bảng kết quả và đối chiếu từng phép với cách xếp.
 Mục 7 là hạn chế và việc chưa làm.
 Phần kết luận trả lời ba vạch.
-Phụ lục A ánh xạ mỗi tên dòng sang file của lần đo đã chốt.
+GUIDE.md ánh xạ mỗi tên dòng sang file của lần đo đã chốt.
 Mã của từng phép đứng ngay sau phần áp dụng của phép đó.
 Mã chia tập đứng sau mô tả chia tập.
 Mã độ trễ, kích thước và bộ nhớ đỉnh đứng sau định nghĩa của chúng.
@@ -242,7 +246,7 @@ Epoch cuối được giữ vì đó là bước mà lịch đạt \(s_f\).
   \node[lbl, anchor=east] at (-0.02,0) {$0$};
   \node[lbl, anchor=west] at (0.62,0.28) {$p=3$};
 \end{tikzpicture}
-\caption{Pruning theo độ lớn trên một ma trận ví dụ, và lịch PolynomialDecay của độ thưa $s(t)$ từ 0 tới 0.70. Mốc 0.6125 là tính tay tại nửa số bước, không phải một lần đo.}
+\caption{Pruning theo độ lớn trên một ma trận ví dụ, và lịch PolynomialDecay của độ thưa theo bước $s(t)$ từ độ thưa đầu 0 tới độ thưa cuối 0.70. Mốc 0.6125 là tính tay tại nửa số bước.}
 \label{fig:prune-mech}
 \end{figure}
 
@@ -280,12 +284,13 @@ pruned.fit(
     callbacks=[tfmot.sparsity.keras.UpdatePruningStep()],
 )
 stripped = tfmot.sparsity.keras.strip_pruning(pruned)
-\end{verbatim}}
+\end{verbatim}
+}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/paper_han_pipeline.png}
-\caption{Ba giai đoạn nén trong bài báo gốc: pruning, quantization, rồi Huffman coding \cite{han2016}. Bài này chỉ làm nhánh pruning. Các hệ số \(9\times\)--\(49\times\) là số của bài báo đó, không phải số của Bảng~\ref{tab:results}.}
+\caption{Pruning trong bài báo gốc, đứng trước quantization và Huffman coding \cite{han2016}. Các hệ số \(9\times\)--\(49\times\) là số lần nén ghi trong bài báo đó.}
 \label{fig:han-paper}
 \end{figure}
 
@@ -339,7 +344,7 @@ PTQ không sửa lại trọng số để bù sai số đó.
     {$S=2.2/255\approx 0.008627$,\quad $Z=11$\\
      256 mã, $q\in[-128,127]$};
 \end{tikzpicture}
-\caption{Ánh xạ afin INT8 trên bốn số tay. Vị trí trên trục là $r$. Số dưới mỗi vạch là mã $q$. Ví dụ này không lấy từ mô hình.}
+\caption{INT8 post-training quantization (INT8 PTQ): ánh xạ afin trên bốn số tay. Vị trí trên trục là số thực $r$. Số dưới mỗi vạch là mã nguyên $q$.}
 \label{fig:int8-mech}
 \end{figure}
 
@@ -366,12 +371,13 @@ def convert_int8(model, name, calibration_count=300):
     converter.inference_output_type = tf.int8
     payload = converter.convert()
     return save_bytes(name, payload), payload
-\end{verbatim}}
+\end{verbatim}
+}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/paper_jacob_conv.png}
-\caption{Lớp tích chập ở dạng số nguyên 8 bit khi suy luận, và dạng có nút giả lập lượng tử khi huấn luyện \cite{jacob2018}. Bài này dùng post-training quantization, nên chỉ đi theo panel (a). Panel đo ImageNet của bài báo không được đưa vào.}
+\caption{INT8 post-training quantization (INT8 PTQ): lớp tích chập ở dạng số nguyên 8 bit khi suy luận, panel (a), và dạng có nút giả lập lượng tử khi huấn luyện \cite{jacob2018}. Bài này theo panel (a).}
 \label{fig:jacob-paper}
 \end{figure}
 
@@ -482,7 +488,7 @@ Sai số đến từ sức chứa nhỏ hơn của học sinh, không phải t�
     \draw[->] (-0.35,0) -- (-0.35,1.72);
   \end{scope}
 \end{tikzpicture}
-\caption{Knowledge distillation ngoại tuyến. Mô hình thầy không được cập nhật. Cặp cột là ví dụ tay tại $T=1$ và $T=4$, không phải một ảnh của tập đo.}
+\caption{Distillation ngoại tuyến: mô hình thầy giữ nguyên trọng số. Cặp cột là ví dụ tay tại nhiệt độ $T=1$ và $T=4$.}
 \label{fig:kd}
 \end{figure}
 
@@ -547,17 +553,18 @@ for epoch in range(10):
         best = {"acc": acc, "epoch": epoch + 1,
                 "weights": [item.copy() for item in student.get_weights()]}
 student.set_weights(best["weights"])
-\end{verbatim}}
+\end{verbatim}
+}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{figures/paper_gou_hinton.png}
-\caption{Kiến trúc chưng cất chuẩn của Hinton et al., vẽ lại trong bài tổng quan \cite{gou2021,hinton2015}. Thầy đã huấn luyện đưa nhãn mềm; học sinh học nhãn mềm cùng nhãn cứng. Hình này không phải mạng Fashion-MNIST của bài.}
+\caption{Distillation: kiến trúc chưng cất của Hinton et al., vẽ lại trong bài tổng quan \cite{gou2021,hinton2015}. Thầy đã huấn luyện đưa nhãn mềm; học sinh học nhãn mềm cùng nhãn cứng.}
 \label{fig:gou-paper}
 \end{figure}
 
 \section{Phương pháp}
-
+Mục tiêu của thiết kế này là so sánh công bằng: mọi phương pháp xuất phát từ cùng một mô hình gốc float32, mỗi nhánh chỉ thay đổi một yếu tố, và mọi nhánh được đo bằng cùng một phép đo trên file TFLite, để chênh lệch trong bảng kết quả chỉ đến từ phương pháp nén.
 Pipeline xuất phát từ một mô hình gốc float32 và tách thành các nhánh độc lập.
 Pruning và distillation nhận một mạng và trả về một mạng.
 INT8 PTQ nhận một mạng và trả về file TFLite, nên INT8 PTQ đứng cuối nếu nó có trong thứ tự.
@@ -609,7 +616,7 @@ Mọi nhánh kết thúc bằng một file TFLite rồi đi vào cùng một ph�
   \node[ctrl] at (0,-8.15)
     {small from-scratch: cùng kiến trúc với distilled student, không đi qua float baseline, cùng phép đo};
 \end{tikzpicture}
-\caption{Pipeline từ float baseline qua pruning, INT8 và distillation; pruning rồi INT8 thành pruned INT8, distillation rồi pruning rồi INT8 thành distilled pruned INT8 và stacked, default config. Hộp đứt nét là small from-scratch, cùng kiến trúc, không đi qua float baseline.}
+\caption{Float baseline, rồi pruning, INT8 post-training quantization (INT8 PTQ) và distillation. Pruning rồi INT8 PTQ thành pruned INT8. Distillation rồi pruning rồi INT8 PTQ thành distilled pruned INT8 và stacked, default config. Hộp đứt nét là small from-scratch, cùng kiến trúc với distilled student.}
 \label{fig:pipeline}
 \end{figure}
 
@@ -635,7 +642,8 @@ x_te = (x_te / 255.0).astype("float32")[..., None]
 x_tr, y_tr = x_train_full[:-6000], y_train_full[:-6000]
 x_val, y_val = x_train_full[-6000:], y_train_full[-6000:]
 assert len(x_tr) == 54000 and len(x_val) == 6000 and len(x_te) == 10000
-\end{verbatim}}
+\end{verbatim}
+}
 
 Mô hình học sinh 8 kênh có tích chập 8 kênh, gộp cực đại, tích chập 16 kênh, gộp cực đại, trải phẳng, tầng dày 128 đơn vị với rectified linear unit (ReLU), Dropout 0.3, và tầng dày 10 đơn vị với softmax.
 Kernel tích chập có cạnh 3 và đệm same.
@@ -655,7 +663,7 @@ Với \(\alpha = 0.5\), một nửa (\ref{eq:distill}) vẫn là nhãn cứng.
 
 \begin{table}[H]
 \centering
-\caption{Siêu tham số đã chốt của pruning, INT8, distillation, small from-scratch, pruned INT8, distilled pruned INT8 và stacked, default config. Adam của hai học sinh là mặc định của thư viện, không ghi một tốc độ học riêng.}
+\caption{Pruning, INT8 post-training quantization (INT8 PTQ), distillation, small from-scratch, pruned INT8, distilled pruned INT8 và stacked, default config: siêu tham số đã chốt. Adam, bộ tối ưu của hai học sinh, là mặc định của thư viện.}
 \label{tab:hyper}
 \begin{tabularx}{\textwidth}{|l|Y|}
 \hline
@@ -677,7 +685,6 @@ Học sinh nhãn cứng & cùng kiến trúc và cùng 10 epoch, nhãn cứng, A
 Mốc 0.9158 là độ chính xác của mô hình gốc float32.
 Kích thước thô là số byte của file TFLite.
 KB lấy số byte chia cho 1000.
-MB lấy số byte chia cho \(1{,}000{,}000\).
 Gzip là kích thước sau khi nén mức 9 với mốc thời gian bằng 0.
 Phần cắt gzip là phần trăm gzip đã bỏ đi so với gzip của mô hình gốc.
 Phần cắt thô là phần trăm kích thước thô đã bỏ đi so với 1690.108 KB của cùng dòng float baseline.
@@ -685,7 +692,6 @@ Dòng mô hình gốc được gán cả hai phần cắt bằng 0, vì nó là 
 
 \noindent\textbf{Mã.}
 KB là byte chia 1000.
-MB trong bảng in là KB chia 1000.
 Mã dưới đây là phép đo đã chạy: \texttt{size\_cut} là phần cắt gzip, và \texttt{bar\_flags} chỉ so độ giảm với 2 pp và phần cắt gzip với 50 phần trăm.
 Phần cắt thô và vạch Keras–TFLite được chấm trong báo cáo từ số đã lưu, như mục Điều kiện đạt phía dưới.
 
@@ -704,9 +710,10 @@ row["size_cut"] = (BASE_GZIP - gzip_n) / BASE_GZIP * 100
 def bar_flags(row):
     return row["loss_pp"] <= 2.0, row["size_cut"] >= 50.0
 
-f"{row['raw_kb']:10.3f} {row['raw_kb']/1000:10.6f} "
-f"{row['gzip_kb']:10.3f} {row['gzip_kb']/1000:10.6f} "
-\end{verbatim}}
+f"{row['raw_kb']:10.3f} "
+f"{row['gzip_kb']:10.3f} "
+\end{verbatim}
+}
 
 Cột \texttt{verdict} của \texttt{results/results.csv} vẫn ghi PASS cho dòng pruned, vì \texttt{bar\_flags} chỉ kiểm độ giảm và phần cắt gzip.
 Bảng~\ref{tab:results} áp vạch thô tính từ \texttt{raw\_KB} đã lưu, nên cùng dòng đó ghi FAIL (raw).
@@ -759,7 +766,7 @@ Phần cắt thô trong Bảng~\ref{tab:results} được tính từ cột \text
 
 \begin{table}[H]
 \centering
-\caption{Giao thức đo dùng chung cho float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config. Độ trễ trung vị (p50) và độ trễ phân vị 95 (p95) đo trên CPU, batch = 1, một luồng, là trung vị của ba lần đo.}
+\caption{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: giao thức đo dùng chung. Độ trễ trung vị (p50) và độ trễ phân vị 95 (p95) đo trên CPU, batch = 1, một luồng, là trung vị của ba lần đo.}
 \label{tab:protocol}
 \begin{tabularx}{\textwidth}{|l|Y|}
 \hline
@@ -814,7 +821,8 @@ def latency_medians(path):
         p95.append(float(np.percentile(samples, 95)))
     p50.sort(); p95.sort()
     return p50[1], p95[1]
-\end{verbatim}}
+\end{verbatim}
+}
 
 Tiến trình đo bộ nhớ chỉ nạp bộ bao thông dịch và NumPy, không nạp cả thư viện huấn luyện.
 Tiến trình rỗng không nhận file mô hình.
@@ -841,7 +849,8 @@ for _ in range(200):
     interp.SetTensor(in_idx, feed)
     interp.Invoke()
     interp.GetTensor(out_idx, 0)
-\end{verbatim}}
+\end{verbatim}
+}
 
 Vạch thứ ba, tương đương sau chuyển đổi, đạt.
 Sai lệch đầu ra lớn nhất Keras vs TFLite (float, trước lượng tử hoá), trên cả 10{,}000 ảnh kiểm tra, là \(1.7583370208740234\times 10^{-6}\), dưới ngưỡng \(1\times 10^{-4}\).
@@ -854,7 +863,7 @@ Mọi số trong mục này lấy từ bảng kết quả.
 Sáu dòng đầu là phần so sánh cuối của sổ đo.
 Dòng distilled pruned INT8 là lần xếp đã chỉnh: distillation, pruning với độ thưa cuối 0.30, rồi INT8.
 Dòng stacked, default config là lần xếp cùng thứ tự với độ thưa cuối 0.70.
-Phụ lục A ghi file của từng dòng.
+GUIDE.md ghi file của từng dòng.
 p50 và p95 dưới đây là hai cột của bảng này.
 
 Bảng~\ref{tab:results} chấm từng dòng nén trên ba điều kiện: độ giảm, phần cắt thô và phần cắt gzip.
@@ -866,21 +875,21 @@ Vạch Keras–TFLite không có cột trong bảng này.
 
 \begin{table}[H]
 \centering
-\caption{Độ chính xác trên tập kiểm tra, độ giảm so với 0.9158 (pp), kích thước tệp .tflite (KB và MB), kích thước tệp .tflite sau nén gzip (KB và MB), phần trăm kích thước thô đã cắt, phần trăm gzip đã cắt, độ trễ trung vị (p50, ms), độ trễ phân vị 95 (p95, ms) và bộ nhớ đỉnh (VmHWM trừ tiến trình rỗng, kB) của float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config. Cột Kết quả là PASS khi độ giảm không quá 2 pp, phần cắt thô không dưới 50 phần trăm và phần cắt gzip không dưới 50 phần trăm; FAIL (raw) trượt vạch thô và FAIL (acc) trượt vạch độ chính xác. Độ trễ đo trên CPU, batch = 1, một luồng, trung vị của ba lần đo.}
+\caption{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: độ chính xác trên tập kiểm tra, độ giảm so với 0.9158 (percentage point, pp), kích thước tệp .tflite (KB, byte/1000), kích thước tệp .tflite sau nén gzip (KB), phần trăm kích thước thô đã cắt, phần trăm gzip đã cắt, độ trễ trung vị (p50, ms), độ trễ phân vị 95 (p95, ms) và bộ nhớ đỉnh (đỉnh bộ nhớ thường trú, VmHWM, trừ tiến trình rỗng, kB). Cột Kết quả là PASS khi độ giảm không quá 2 pp, phần cắt thô không dưới 50 phần trăm và phần cắt gzip không dưới 50 phần trăm; FAIL (raw) trượt vạch thô và FAIL (acc) trượt vạch độ chính xác. Độ trễ đo trên CPU, batch = 1, một luồng, trung vị của ba lần đo.}
 \label{tab:results}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{|l|r|r|r|r|r|r|r|r|r|r|r|l|}
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{|l|r|r|r|r|r|r|r|r|r|l|}
 \hline
-Dòng & Test & Loss & Raw KB & Raw MB & Gzip KB & Gzip MB & Raw cut & Gzip cut & p50 & p95 & Vm & Kết quả \\ \hline
-float baseline & 0.9158 & 0.00 & 1690.108 & 1.690108 & 1567.603 & 1.567603 & 0.00 & 0.00 & 0.155 & 0.226 & 7108 & reference \\ \hline
-small from-scratch & 0.8974 & 1.84 & 415.612 & 0.415612 & 384.088 & 0.384088 & 75.41 & 75.50 & 0.025 & 0.028 & 4692 & PASS \\ \hline
-pruned & 0.9099 & 0.59 & 1690.108 & 1.690108 & 622.146 & 0.622146 & 0.00 & 60.31 & 0.179 & 0.261 & 7244 & FAIL (raw) \\ \hline
-INT8 & 0.9150 & 0.08 & 431.992 & 0.431992 & 383.123 & 0.383123 & 74.44 & 75.56 & 0.068 & 0.079 & 4684 & PASS \\ \hline
-distilled student & 0.9011 & 1.47 & 415.612 & 0.415612 & 384.058 & 0.384058 & 75.41 & 75.50 & 0.025 & 0.029 & 4636 & PASS \\ \hline
-pruned INT8 & 0.9102 & 0.56 & 431.992 & 0.431992 & 181.994 & 0.181994 & 74.44 & 88.39 & 0.070 & 0.094 & 4648 & PASS \\ \hline
-distilled pruned INT8 & 0.8992 & 1.66 & 111.424 & 0.111424 & 87.025 & 0.087025 & 93.41 & 94.45 & 0.008 & 0.009 & 4012 & PASS \\ \hline
-stacked, default config & 0.8855 & 3.03 & 111.424 & 0.111424 & 49.483 & 0.049483 & 93.41 & 96.84 & 0.015 & 0.028 & 4016 & FAIL (acc) \\ \hline
-\end{tabular}}
+Dòng & Test & Loss & Raw KB & Gzip KB & Raw cut & Gzip cut & p50 & p95 & Vm & Kết quả \\ \hline
+float baseline & 0.9158 & 0.00 & 1690.108 & 1567.603 & 0.00 & 0.00 & 0.155 & 0.226 & 7108 & reference \\ \hline
+small from-scratch & 0.8974 & 1.84 & 415.612 & 384.088 & 75.41 & 75.50 & 0.025 & 0.028 & 4692 & PASS \\ \hline
+pruned & 0.9099 & 0.59 & 1690.108 & 622.146 & 0.00 & 60.31 & 0.179 & 0.261 & 7244 & FAIL (raw) \\ \hline
+INT8 & 0.9150 & 0.08 & 431.992 & 383.123 & 74.44 & 75.56 & 0.068 & 0.079 & 4684 & PASS \\ \hline
+distilled student & 0.9011 & 1.47 & 415.612 & 384.058 & 75.41 & 75.50 & 0.025 & 0.029 & 4636 & PASS \\ \hline
+pruned INT8 & 0.9102 & 0.56 & 431.992 & 181.994 & 74.44 & 88.39 & 0.070 & 0.094 & 4648 & PASS \\ \hline
+distilled pruned INT8 & 0.8992 & 1.66 & 111.424 & 87.025 & 93.41 & 94.45 & 0.008 & 0.009 & 4012 & PASS \\ \hline
+stacked, default config & 0.8855 & 3.03 & 111.424 & 49.483 & 93.41 & 96.84 & 0.015 & 0.028 & 4016 & FAIL (acc) \\ \hline
+\end{tabular}
 \end{table}
 
 Ba phép đứng riêng cho ba kiểu giảm khác nhau.
@@ -891,7 +900,7 @@ p50 đi từ 0.155 ms xuống 0.068 ms, và p95 đi từ 0.226 ms xuống 0.079 
 Bộ nhớ đỉnh đi từ 7108 kB xuống 4684 kB.
 Đây là phép đơn giữ độ chính xác sát mốc nhất, và qua vạch thô lẫn vạch gzip: phần cắt thô 74.44 phần trăm, phần cắt gzip 75.56 phần trăm.
 
-Pruning trên mô hình gốc không đổi kích thước thô: cả hai dòng float đều là 1690.108 KB và 1.690108 MB.
+Pruning trên mô hình gốc không đổi kích thước thô: cả hai dòng float đều là 1690.108 KB.
 Gzip giảm từ 1567.603 KB xuống 622.146 KB, tức cắt 60.31 phần trăm, nên dòng này qua vạch gzip.
 Phần cắt thô là 0.00 phần trăm, nên dòng này FAIL ở vạch thô.
 Độ chính xác là 0.9099, giảm 0.59 pp.
@@ -901,7 +910,7 @@ Vì vậy pruning ở dạng mảng float đủ phần tử cắt được gzip,
 Hình~\ref{fig:hist} chỉ minh họa việc đưa trọng số nhỏ về không trên một bản sao.
 Hình đó không phải dòng pruned của Bảng~\ref{tab:results}.
 
-Hai học sinh 8 kênh có cùng kích thước thô 415.612 KB, tức 0.415612 MB.
+Hai học sinh 8 kênh có cùng kích thước thô 415.612 KB.
 Học sinh nhãn cứng đạt độ chính xác 0.8974, giảm 1.84 pp, gzip 384.088 KB, cắt 75.50 phần trăm.
 Học sinh chưng cất đạt 0.9011, giảm 1.47 pp, gzip 384.058 KB, cũng cắt 75.50 phần trăm.
 Hiệu hai độ giảm là \(1.84 - 1.47 = 0.37\) pp, lấy cùng mốc 0.9158.
@@ -930,7 +939,7 @@ Học sinh chưng cất đã giảm 1.47 pp trước khi bị pruning.
 Dòng xếp đủ ba bước còn độ chính xác 0.8992, tức giảm 1.66 pp.
 Phần tăng thêm so với chính học sinh đó là \(1.66 - 1.47 = 0.19\) pp.
 Mức 0.19 pp nhỏ hơn độ giảm 0.59 pp của pruning trên mô hình gốc.
-Thô còn 111.424 KB, tức 0.111424 MB, vì INT8 vẫn ghi đủ mã 8 bit cho từng trọng số.
+Thô còn 111.424 KB, vì INT8 vẫn ghi đủ mã 8 bit cho từng trọng số.
 Gzip còn 87.025 KB, cắt 94.45 phần trăm so với 1567.603 KB.
 Phần cắt thô là 93.41 phần trăm.
 p50 còn 0.008 ms, p95 còn 0.009 ms, và bộ nhớ đỉnh còn 4012 kB.
@@ -960,9 +969,9 @@ Cột của pruning trên mô hình gốc cao hơn cột của mô hình gốc, 
 Đổi lấy kích thước vì vậy không phải lúc nào cũng đổi lấy tốc độ.
 Dòng cân bằng nhất trong bảng là pruned INT8: giảm 0.56 pp, vẫn dưới 2 pp, và cắt 88.39 phần trăm gzip, trong khi p50 là 0.070 ms.
 
-\figframe{Kích thước tệp .tflite sau nén gzip (KB) và độ giảm độ chính xác trên tập kiểm tra (pp) của float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config. Vạch ngang đứt là 2 pp và vạch dọc đứt là gzip sau khi cắt 50 phần trăm. Phần cắt thô không có trên hình này; cột Raw cut của Bảng~\ref{tab:results} mới là vạch thô.\label{fig:scatter}}{\includegraphics[width=0.88\textwidth]{figures/gzip_vs_loss.png}}
+\figframe{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: kích thước tệp .tflite sau nén gzip (KB, byte/1000) và độ giảm độ chính xác trên tập kiểm tra (percentage point, pp). Vạch ngang đứt là 2 pp và vạch dọc đứt là gzip sau khi cắt 50 phần trăm.\label{fig:scatter}}{\includegraphics[width=0.88\textwidth]{figures/gzip_vs_loss.png}}
 
-\figframe{Độ trễ trung vị (p50, mili giây) của mỗi mô hình khi suy luận một ảnh kiểm tra trên CPU (batch = 1, một luồng; trung vị của ba lần đo): float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config. Giá trị lấy từ lần đo đã chốt.\label{fig:p50}}{\includegraphics[width=0.88\textwidth]{figures/p50.png}}
+\figframe{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: độ trễ trung vị (p50, mili giây) khi suy luận một ảnh kiểm tra trên CPU (batch = 1, một luồng; trung vị của ba lần đo).\label{fig:p50}}{\includegraphics[width=0.88\textwidth]{figures/p50.png}}
 
 Hình~\ref{fig:rawgzip} đặt kích thước thô cạnh gzip của cùng một dòng.
 Hai cột xanh của float baseline và pruned cùng cao 1690.108 KB.
@@ -973,7 +982,7 @@ INT8 và pruned INT8 có cùng cột thô 431.992 KB, nhưng gzip của pruned I
 Hai dòng xếp có cùng cột thô 111.424 KB.
 Gzip của cấu hình mặc định là 49.483 KB, và gzip của lần đã chỉnh là 87.025 KB.
 
-\figframe{Kích thước tệp .tflite (KB, cột xanh) và kích thước tệp .tflite sau nén gzip mức 9, mốc thời gian 0 (KB, cột cam) của float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config.\label{fig:rawgzip}}{\includegraphics[width=0.88\textwidth]{figures/raw_vs_gzip.png}}
+\figframe{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: kích thước tệp .tflite (KB, byte/1000, cột xanh) và kích thước tệp .tflite sau nén gzip mức 9, mốc thời gian 0 (KB, cột cam).\label{fig:rawgzip}}{\includegraphics[width=0.88\textwidth]{figures/raw_vs_gzip.png}}
 
 Hình~\ref{fig:p95} là đuôi độ trễ, không phải p50.
 Pruning trên mô hình gốc có p95 bằng 0.261 ms, cao hơn 0.226 ms của mô hình gốc, cùng chiều với p50.
@@ -983,7 +992,7 @@ Dòng đã chỉnh có p50 0.008 ms và p95 0.009 ms.
 Cả hai số này thấp nhất trong tám dòng.
 Cấu hình mặc định có p50 0.015 ms và p95 0.028 ms.
 
-\figframe{Độ trễ phân vị 95 (p95, mili giây) của mỗi mô hình khi suy luận một ảnh kiểm tra trên CPU (batch = 1, một luồng; trung vị của ba lần đo): float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config. Giá trị lấy từ lần đo đã chốt.\label{fig:p95}}{\includegraphics[width=0.88\textwidth]{figures/p95.png}}
+\figframe{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: độ trễ phân vị 95 (p95, mili giây) khi suy luận một ảnh kiểm tra trên CPU (batch = 1, một luồng; trung vị của ba lần đo).\label{fig:p95}}{\includegraphics[width=0.88\textwidth]{figures/p95.png}}
 
 Hình~\ref{fig:mem} là bộ nhớ đỉnh sau khi đã trừ sàn.
 Pruning float là cột cao nhất, 7244 kB, trên cả 7108 kB của mô hình gốc.
@@ -992,7 +1001,7 @@ Dòng đã chỉnh là cột thấp nhất, 4012 kB.
 Cấu hình mặc định là 4016 kB.
 Cùng một cách trừ sàn, thứ tự này so được giữa tám dòng.
 
-\figframe{Bộ nhớ đỉnh (đỉnh bộ nhớ thường trú, VmHWM trừ tiến trình rỗng, kB) của float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config. Mỗi giá trị là trung vị của ba tiến trình có mô hình trừ trung vị của ba tiến trình rỗng.\label{fig:mem}}{\includegraphics[width=0.88\textwidth]{figures/peak_mem.png}}
+\figframe{Float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8 và stacked, default config: bộ nhớ đỉnh (đỉnh bộ nhớ thường trú, VmHWM, trừ tiến trình rỗng, kB). Mỗi giá trị là trung vị của ba tiến trình có mô hình trừ trung vị của ba tiến trình rỗng.\label{fig:mem}}{\includegraphics[width=0.88\textwidth]{figures/peak_mem.png}}
 
 Ba hình kế tiếp lấy từ lần xem từng trọng số và từng ảnh, không phải từ tám file đã đo.
 Hình~\ref{fig:hist} chỉ minh họa việc đưa trọng số nhỏ về không trên một bản sao của lớp tích chập đầu.
@@ -1006,13 +1015,13 @@ Hình~\ref{fig:distill-bars} là xác suất của mô hình gốc trên ảnh h
 \(T=4\) làm đỉnh thấp đi và đẩy khối lượng sang lớp lân cận.
 Ảnh này không phải ví dụ ba lớp ở Mục~\ref{sec:theory}, và không phải độ chính xác 0.9011 của học sinh.
 
-\figframe{Minh họa pruning theo độ lớn trên một bản sao của lớp tích chập đầu: các trọng số nhỏ bị đặt về không. Bản sao này không phải mô hình pruned trong Bảng~\ref{tab:results}.\label{fig:hist}}{\includegraphics[width=0.72\textwidth]{figures/prune_hist.png}}
+\figframe{Pruning theo độ lớn trên một bản sao của lớp tích chập đầu của float baseline: các trọng số nhỏ bị đặt về không.\label{fig:hist}}{\includegraphics[width=0.72\textwidth]{figures/prune_hist.png}}
 
-\figframe{Một lớp tích chập đầu của bản sao mô hình gốc: trục ngang là trọng số float \(r\), trục dọc là giá trị dựng lại \(S(q-Z)\). Thang demo của tensor này không phải thang trong file INT8, và hình không phải mô hình INT8 của Bảng~\ref{tab:results}.\label{fig:int8-scatter}}{\includegraphics[width=0.72\textwidth]{figures/v3_int8_scatter.png}}
+\figframe{INT8 post-training quantization (INT8 PTQ) trên một lớp tích chập đầu của bản sao float baseline: trục ngang là trọng số float, tức số thực \(r\), trục dọc là giá trị dựng lại \(S(q-Z)\), với \(S\) là thang, \(q\) là mã nguyên và \(Z\) là điểm không.\label{fig:int8-scatter}}{\includegraphics[width=0.72\textwidth]{figures/v3_int8_scatter.png}}
 
-\figframe{Sai số dựng lại \(S(q-Z)-r\) trên cùng tensor với Hình~\ref{fig:int8-scatter}. Histogram này không phải độ giảm 0.08 pp của mô hình INT8.\label{fig:int8-err}}{\includegraphics[width=0.72\textwidth]{figures/v3_int8_error_hist.png}}
+\figframe{INT8 post-training quantization (INT8 PTQ): sai số dựng lại \(S(q-Z)-r\) trên cùng tensor với Hình~\ref{fig:int8-scatter}, với \(S\) là thang, \(q\) là mã nguyên, \(Z\) là điểm không và \(r\) là số thực.\label{fig:int8-err}}{\includegraphics[width=0.72\textwidth]{figures/v3_int8_error_hist.png}}
 
-\figframe{Xác suất của mô hình gốc trên ảnh huấn luyện đầu, tại \(T=1\) và \(T=4\). Hình này không phải ví dụ ba lớp, và không phải mô hình distilled student của Bảng~\ref{tab:results}.\label{fig:distill-bars}}{\includegraphics[width=0.72\textwidth]{figures/v3_distill_bars.png}}
+\figframe{Distillation: xác suất của float baseline trên ảnh huấn luyện đầu, tại nhiệt độ \(T=1\) và \(T=4\).\label{fig:distill-bars}}{\includegraphics[width=0.72\textwidth]{figures/v3_distill_bars.png}}
 
 \section{Phân tích độ nhạy siêu tham số}
 \label{sec:sweep}
@@ -1038,18 +1047,15 @@ Gzip được gọi là đi ngang khi lệch không quá 5 KB.
 
 \subsection{Pruning}
 
-\(s_f\) là phần trọng số bị đưa về không ở cuối lịch \cite{zhu2017}.
-Tăng \(s_f\) bỏ nhiều trọng số nhỏ hơn, nên accuracy được dự đoán giảm và gzip của file float được dự đoán giảm.
-Số epoch là thời gian để các trọng số còn lại hồi lại trong lúc độ thưa đi từ 0 lên \(s_f\).
-Accuracy được dự đoán tăng rồi đi ngang.
-Gzip được dự đoán đi ngang, vì \(s_f\) cuối không đổi.
-PolynomialDecay nâng độ thưa dần.
-ConstantSparsity đặt đúng \(s_f\) từ bước 0.
-Accuracy của ConstantSparsity được dự đoán thấp hơn.
-Hai lịch kết thúc cùng \(s_f\), nên gzip phải khớp trong vài KB.
-Lệch lớn hơn mức đó là dấu hiệu lỗi.
-Nút lớp chọn mọi lớp, hoặc chỉ các lớp dense.
-Phần dense chiếm gần hết tham số, nên dense-only được dự đoán giữ accuracy cao hơn một chút và gzip lớn hơn một chút.
+Pruning có bốn nút: độ thưa cuối \(s_f\), số epoch, lịch tăng độ thưa và phạm vi lớp. Mỗi lần chỉ đổi một nút, và mỗi nút đi kèm một dự đoán về accuracy và gzip.
+
+\textbf{Độ thưa cuối \(s_f\).} \(s_f\) là phần trọng số bị đưa về không ở cuối lịch \cite{zhu2017}. Khi tăng \(s_f\), mạng bỏ thêm cả những trọng số ít nhỏ hơn, nên accuracy được dự đoán giảm. Đổi lại, file float có nhiều số không hơn, nên gzip được dự đoán giảm.
+
+\textbf{Số epoch.} Trong lúc độ thưa đi từ 0 lên \(s_f\), các trọng số còn lại cần thời gian để hồi lại, và số epoch chính là khoảng thời gian đó. Vì vậy accuracy được dự đoán tăng rồi đi ngang khi số epoch tăng. Ngược lại, gzip được dự đoán đi ngang, vì \(s_f\) cuối không đổi nên số trọng số bằng không cũng không đổi.
+
+\textbf{Lịch tăng độ thưa.} PolynomialDecay nâng độ thưa dần, nên mạng có thời gian thích nghi sau mỗi bước cắt. ConstantSparsity đặt đúng \(s_f\) ngay từ bước 0, nên mạng mất nhiều trọng số cùng lúc, và accuracy của nó được dự đoán thấp hơn. Tuy nhiên, hai lịch kết thúc ở cùng \(s_f\), nên gzip của chúng phải khớp trong vài KB. Nếu lệch lớn hơn mức đó thì đây là dấu hiệu lỗi.
+
+\textbf{Phạm vi lớp.} Nút lớp chọn cắt mọi lớp hoặc chỉ các lớp dense. Vì phần dense chiếm gần hết tham số, dense-only vẫn cắt được phần lớn trọng số nhưng để nguyên các lớp conv. Do đó dense-only được dự đoán giữ accuracy cao hơn một chút, đổi lại gzip lớn hơn một chút.
 
 Lớp tích chập của mô hình gốc có 18{,}816 tham số, trong đó 18{,}720 là kernel và 96 là bias.
 Các lớp dense có 402{,}826 tham số, trong đó 402{,}688 là kernel và 138 là bias.
@@ -1058,9 +1064,8 @@ Vì vậy bỏ pruning trên các lớp tích chập chỉ chừa lại một ph
 
 \begin{table}[H]
 \centering
-\caption{Pruning trên float baseline, dự đoán so với lần đo khi đổi một nút, với mốc \(s_f=0.70\), 4 epoch, PolynomialDecay, mọi lớp. Accuracy là độ chính xác trên tập kiểm tra (10{,}000 ảnh) và gzip là kích thước tệp .tflite sau nén gzip (KB).}
+\caption{Pruning trên float baseline: dự đoán so với lần đo khi đổi một nút, với mốc độ thưa cuối \(s_f=0.70\), 4 epoch, PolynomialDecay, mọi lớp. Accuracy là độ chính xác trên tập kiểm tra (10{,}000 ảnh) và gzip là kích thước tệp .tflite sau nén gzip (KB, byte/1000).}
 \label{tab:sweep-prune}
-\footnotesize
 \begin{tabular}{|l|l|l|l|r|r|l|}
 \hline
 Nút & Giá trị & Dự đoán acc. & Dự đoán gzip & Acc. & Gzip KB & Kết luận \\ \hline
@@ -1089,31 +1094,29 @@ Gzip là 622.564 KB, cao hơn mốc 0.418 KB.
 Mức đó nằm trong vài KB, nên không phải lỗi lệch lịch.
 Dense-only đạt 0.9167 và gzip 663.939 KB, cao hơn mốc 41.793 KB, đúng với phần kernel tích chập còn dày.
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo độ thưa cuối \(s_f\) của pruning. Vạch đứt và vòng tròn hở là giá trị đã chốt \(0.70\).\label{fig:sweep-sf}}{\includegraphics[width=0.88\textwidth]{figures/sweep_prune_sf.png}}
+\figframe{Pruning trên float baseline: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo độ thưa cuối \(s_f\). Vạch đứt và vòng tròn hở là giá trị đã chốt \(0.70\).\label{fig:sweep-sf}}{\includegraphics[width=0.88\textwidth]{figures/sweep_prune_sf.png}}
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo số epoch pruning. Vạch đứt là 4 epoch và \(s_f\) cuối vẫn là 0.70.\label{fig:sweep-prune-ep}}{\includegraphics[width=0.88\textwidth]{figures/sweep_prune_epochs.png}}
+\figframe{Pruning trên float baseline: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo số epoch. Vạch đứt là 4 epoch và độ thưa cuối \(s_f\) vẫn là 0.70.\label{fig:sweep-prune-ep}}{\includegraphics[width=0.88\textwidth]{figures/sweep_prune_epochs.png}}
 
 \subsection{Distillation}
 
-\(T\) làm mềm phân phối của giáo viên trước khi so với học sinh \cite{hinton2015}.
-Dự đoán là accuracy tăng từ \(T=1\) tới \(T=4\), rồi giảm ở \(T=8\).
-\(\alpha\) là trọng số của phần mềm.
-\(\alpha=0\) là nhãn cứng.
-Dự đoán là accuracy tăng từ 0 tới 0.5, rồi đi ngang hoặc giảm nhẹ ở 0.9.
-Số epoch là ngân sách để chọn epoch validation tốt nhất.
-Năm epoch được dự đoán thấp hơn 10 epoch.
-Hai mươi epoch được dự đoán đi ngang, vì epoch tốt có thể đã nằm trong 10 epoch đầu.
-Learning rate \(10^{-4}\) và \(10^{-2}\) được dự đoán thấp hơn \(10^{-3}\).
-Đây là hành vi tối ưu tổng quát, kiểm tra bằng thực nghiệm, không lấy từ một bài báo của phương pháp.
-Bốn nút này không đổi kiến trúc, nên gzip được dự đoán đi ngang.
-Số kênh và số đơn vị dense đổi kích thước lớp dense sau flatten.
-Cả accuracy và gzip được dự đoán tăng theo độ rộng, với cả nhãn mềm và nhãn cứng.
+Distillation có sáu nút: nhiệt độ \(T\), trọng số \(\alpha\), số epoch, learning rate, và hai nút độ rộng (số kênh, số đơn vị dense). Bốn nút đầu chỉ đổi cách huấn luyện, còn hai nút cuối đổi kiến trúc học sinh.
 
+\textbf{Nhiệt độ \(T\).} \(T\) làm mềm phân phối của giáo viên trước khi so với học sinh \cite{hinton2015}. Khi \(T\) tăng vừa phải, phân phối mềm hơn và lộ ra mức giống nhau giữa các lớp sai, nên accuracy được dự đoán tăng từ \(T=1\) tới \(T=4\). Nếu \(T\) quá lớn, phân phối gần như phẳng và mất thông tin, nên accuracy được dự đoán giảm ở \(T=8\).
+
+\textbf{Trọng số \(\alpha\).} \(\alpha\) là trọng số của phần mềm, nên \(\alpha=0\) chính là học sinh nhãn cứng. Khi tăng \(\alpha\) từ 0 tới 0.5, học sinh nhận thêm tín hiệu từ giáo viên, nên accuracy được dự đoán tăng. Tới 0.9, phần nhãn cứng gần như biến mất, nên accuracy được dự đoán đi ngang hoặc giảm nhẹ.
+
+\textbf{Số epoch.} Số epoch là ngân sách để chọn epoch validation tốt nhất. Với 5 epoch, ngân sách có thể chưa đủ, nên accuracy được dự đoán thấp hơn 10 epoch. Ngược lại, 20 epoch được dự đoán đi ngang, vì epoch tốt nhất có thể đã nằm trong 10 epoch đầu.
+
+\textbf{Learning rate.} Với \(10^{-4}\), bước cập nhật quá nhỏ nên mạng học chậm. Với \(10^{-2}\), bước quá lớn nên quá trình tối ưu kém ổn định. Vì vậy cả hai được dự đoán thấp hơn \(10^{-3}\). Đây là hành vi tối ưu tổng quát, được kiểm tra bằng thực nghiệm, không lấy từ bài báo của phương pháp.
+
+Vì bốn nút trên không đổi kiến trúc, gzip được dự đoán đi ngang khi đổi chúng.
+
+\textbf{Độ rộng.} Ngược lại, số kênh và số đơn vị dense đổi kích thước lớp dense sau flatten, tức là đổi số tham số. Do đó cả accuracy và gzip được dự đoán tăng theo độ rộng, với cả nhãn mềm và nhãn cứng.
 \begin{table}[H]
 \centering
-\caption{Distillation khi đổi một nút và giữ độ rộng, với mốc \(T=4\), \(\alpha=0.5\), 10 epoch, learning rate \(10^{-3}\). Accuracy là độ chính xác trên tập kiểm tra và gzip là kích thước tệp .tflite sau nén gzip (KB).}
+\caption{Distillation: đổi một nút và giữ độ rộng, với mốc nhiệt độ \(T=4\), trọng số nhãn mềm \(\alpha=0.5\), 10 epoch, learning rate \(10^{-3}\). Accuracy là độ chính xác trên tập kiểm tra và gzip là kích thước tệp .tflite sau nén gzip (KB, byte/1000).}
 \label{tab:sweep-distill}
-\footnotesize
 \begin{tabular}{|l|l|l|l|r|r|l|}
 \hline
 Nút & Giá trị & Dự đoán acc. & Dự đoán gzip & Acc. & Gzip KB & Kết luận \\ \hline
@@ -1158,19 +1161,18 @@ Chạy lại seed 42 cho accuracy 0.8985, 0.8990 và 0.9012 ở ba cấu hình �
 Ba số này không trùng 0.8996, 0.9022 và 0.9055 của lần đầu.
 Độ lệch chuẩn ở trên là độ lệch chuẩn mẫu của năm seed.
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo nhiệt độ \(T\) của distillation. Vạch đứt là \(T=4\).\label{fig:sweep-T}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_T.png}}
+\figframe{Distillation: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo nhiệt độ \(T\). Vạch đứt là \(T=4\).\label{fig:sweep-T}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_T.png}}
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo \(\alpha\) của distillation. Vạch đứt là \(\alpha=0.5\) và giá trị 0 là nhãn cứng.\label{fig:sweep-alpha}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_alpha.png}}
+\figframe{Distillation: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo trọng số nhãn mềm \(\alpha\). Vạch đứt là \(\alpha=0.5\) và giá trị 0 là nhãn cứng.\label{fig:sweep-alpha}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_alpha.png}}
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo số epoch distillation. Vạch đứt là 10 epoch.\label{fig:sweep-distill-ep}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_epochs.png}}
+\figframe{Distillation: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo số epoch. Vạch đứt là 10 epoch.\label{fig:sweep-distill-ep}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_epochs.png}}
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo learning rate của distillation. Trục ngang là thang log và vạch đứt là \(10^{-3}\).\label{fig:sweep-lr}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_lr.png}}
+\figframe{Distillation: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo learning rate. Trục ngang là thang log và vạch đứt là \(10^{-3}\).\label{fig:sweep-lr}}{\includegraphics[width=0.88\textwidth]{figures/sweep_distill_lr.png}}
 
 \begin{table}[H]
 \centering
-\caption{Độ rộng học sinh. Mỗi độ rộng có distilled (\(\alpha=0.5\)) và hard-label (\(\alpha=0\)). Mốc độ rộng là 8 kênh và dense 128.}
+\caption{Distillation và small from-scratch: độ rộng học sinh. Mỗi độ rộng có distilled (trọng số nhãn mềm \(\alpha=0.5\)) và hard-label (\(\alpha=0\)). Mốc độ rộng là 8 kênh tích chập và 128 đơn vị dense.}
 \label{tab:sweep-width}
-\footnotesize
 \begin{tabular}{|l|l|l|l|r|r|l|}
 \hline
 Nút & Giá trị & Dự đoán acc. & Dự đoán gzip & Acc. & Gzip KB & Kết luận \\ \hline
@@ -1199,29 +1201,24 @@ Tại dense 256, hiệu là \(0.9062-0.9028=+0.0034\).
 Tại chính độ rộng đã chốt, hiệu là \(0.8996-0.9022=-0.0026\).
 Số 0.37 pp của hai học sinh trong Bảng~\ref{tab:results} là một cặp file khác, không phải hiệu này.
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo số kênh tích chập. Đường xanh là distilled (\(\alpha=0.5\)), đường cam là hard-label (\(\alpha=0\)), và vạch đứt là 8 kênh.\label{fig:sweep-filters}}{\includegraphics[width=0.88\textwidth]{figures/sweep_filters.png}}
+\figframe{Distillation và small from-scratch: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo số kênh tích chập. Đường xanh là distilled (trọng số nhãn mềm \(\alpha=0.5\)), đường cam là hard-label (\(\alpha=0\)), và vạch đứt là 8 kênh.\label{fig:sweep-filters}}{\includegraphics[width=0.88\textwidth]{figures/sweep_filters.png}}
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo số đơn vị dense. Đường xanh là distilled (\(\alpha=0.5\)), đường cam là hard-label (\(\alpha=0\)), và vạch đứt là 128.\label{fig:sweep-dense}}{\includegraphics[width=0.88\textwidth]{figures/sweep_dense.png}}
+\figframe{Distillation và small from-scratch: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo số đơn vị dense. Đường xanh là distilled (trọng số nhãn mềm \(\alpha=0.5\)), đường cam là hard-label (\(\alpha=0\)), và vạch đứt là 128.\label{fig:sweep-dense}}{\includegraphics[width=0.88\textwidth]{figures/sweep_dense.png}}
 
 \subsection{INT8}
 
-Full-integer lượng tử hóa cả trọng số và activation \cite{jacob2018}.
-Dynamic-range lượng tử hóa trọng số và giữ activation ở float.
-Float16 giữ lưới 16 bit.
-Accuracy được dự đoán tăng ở cả hai chế độ so với full-integer, và float16 cao hơn dynamic-range.
-Gzip của float16 được dự đoán tăng mạnh.
-Gzip của dynamic-range được dự đoán đi ngang.
-Tắt per-channel dùng một scale cho cả lớp, nên accuracy được dự đoán giảm.
-Các scale thêm được dự đoán chỉ chiếm vài byte, nên gzip đi ngang.
-Số ảnh hiệu chuẩn ước lượng khoảng activation.
-Từ 10 lên 300, accuracy được dự đoán tăng.
-Từ 300 lên 1000, accuracy và gzip được dự đoán đi ngang.
+INT8 PTQ có ba nút: chế độ lượng tử hoá, per-channel, và số ảnh hiệu chuẩn. Chế độ mặc định là full-integer, và hai chế độ còn lại được so với nó.
+
+\textbf{Chế độ lượng tử hoá.} Full-integer lượng tử hoá cả trọng số và activation \cite{jacob2018}. Dynamic-range chỉ lượng tử hoá trọng số và giữ activation ở float. Float16 giữ lưới 16 bit cho trọng số. Vì cả hai chế độ này làm tròn ít hơn full-integer, accuracy được dự đoán tăng ở cả hai, và float16, với lưới mịn hơn, được dự đoán cao hơn dynamic-range. Đổi lại, float16 lưu mỗi trọng số bằng 2 byte thay vì 1, nên gzip được dự đoán tăng mạnh. Dynamic-range vẫn lưu trọng số ở 8 bit, nên gzip được dự đoán đi ngang.
+
+\textbf{Per-channel.} Mặc định mỗi kênh có scale riêng. Khi tắt per-channel, cả lớp dùng một scale chung, nên kênh có khoảng giá trị nhỏ bị làm tròn thô hơn, và accuracy được dự đoán giảm. Ngược lại, các scale riêng chỉ chiếm vài byte, nên gzip được dự đoán đi ngang.
+
+\textbf{Số ảnh hiệu chuẩn.} Ảnh hiệu chuẩn dùng để ước lượng khoảng giá trị của activation. Khi tăng từ 10 lên 300 ảnh, khoảng này được ước lượng chính xác hơn, nên accuracy được dự đoán tăng. Từ 300 lên 1000, khoảng đã ổn định, nên accuracy được dự đoán đi ngang. Gzip cũng đi ngang, vì số ảnh không đổi kích thước file.
 
 \begin{table}[H]
 \centering
-\caption{INT8 trên float baseline. Mốc là full-integer, per-channel bật, 300 ảnh hiệu chuẩn. Accuracy là độ chính xác trên tập kiểm tra và gzip là kích thước tệp .tflite sau nén gzip (KB).}
+\caption{INT8 post-training quantization (INT8 PTQ) trên float baseline. Mốc là full-integer, lượng tử theo từng kênh (per-channel) bật, 300 ảnh hiệu chuẩn. Accuracy là độ chính xác trên tập kiểm tra và gzip là kích thước tệp .tflite sau nén gzip (KB, byte/1000).}
 \label{tab:sweep-int8}
-\footnotesize
 \begin{tabular}{|l|l|l|l|r|r|l|}
 \hline
 Nút & Giá trị & Dự đoán acc. & Dự đoán gzip & Acc. & Gzip KB & Kết luận \\ \hline
@@ -1252,7 +1249,7 @@ File 100 ảnh và file 300 ảnh trùng nhau từng byte, nên thêm ảnh tron
 Một nghìn ảnh lên 0.9152, lệch \(+0.0002\), và gzip 383.097 KB.
 Lệch này nằm trong ngưỡng, và gzip lệch 0.026 KB, nên dự đoán đi ngang được ghi CONFIRMED.
 
-\figframe{Độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB) theo số ảnh hiệu chuẩn của INT8. Vạch đứt là 300 ảnh và thang dọc được nới để lệch cỡ một ảnh không thành một vách.\label{fig:sweep-cal}}{\includegraphics[width=0.88\textwidth]{figures/sweep_int8_cal.png}}
+\figframe{INT8 post-training quantization (INT8 PTQ) trên float baseline: độ chính xác trên tập kiểm tra và kích thước tệp .tflite sau nén gzip (KB, byte/1000) theo số ảnh hiệu chuẩn. Vạch đứt là 300 ảnh.\label{fig:sweep-cal}}{\includegraphics[width=0.88\textwidth]{figures/sweep_int8_cal.png}}
 
 Lần quét một nút dùng một seed, trừ tâm distillation được lặp năm seed.
 Tập ảnh là một tập Fashion-MNIST, và lần quét không có p50, p95 hay bộ nhớ đỉnh.
@@ -1261,58 +1258,25 @@ Bốn dòng REFUTED là \(T=1\), 20 epoch, phần tăng theo dense, và per-chan
 
 \section{Hạn chế và hướng tiếp}
 
-Bảng~\ref{tab:results} đủ để chấm ba vạch trên Fashion-MNIST, và không đủ để kết luận ngoài phạm vi đó.
-Mọi dòng dùng một tập ảnh và một lần chia 54{,}000, 6{,}000, 10{,}000.
-Năm seed 42 đến 46 của tâm học sinh nằm ở Mục~\ref{sec:sweep}.
-Một lần chạy lại seed 42 không tự lặp (0.8996 so với 0.8985 ở tâm distilled), nên huấn luyện không bit-deterministic trên thiết lập này, và độ lệch chuẩn của năm seed là khoảng bất định để đọc các lệch.
-Độ trễ là một CPU, một luồng, một ảnh.
-Máy đo dùng CPU 13th Gen Intel(R) Core(TM) i9-13900HX.
-Vì vậy 0.008 ms hay 0.179 ms là thứ tự trên máy đo, chưa phải thứ tự trên một vi điều khiển hoặc một điện thoại.
-Bộ nhớ đỉnh là hiệu \texttt{VmHWM} sau khi trừ sàn.
-Sàn đo lại là 34944 kB, trung vị của 34932 kB, 34944 kB và 35108 kB.
-Cột bộ nhớ vẫn so được giữa tám dòng, vì cùng một cách trừ.
-Cấu hình xếp đã chỉnh được chọn sau khi xem test accuracy; không có lựa chọn riêng trên validation.
-Chưa chạy lần xếp chỉ đổi \(s_f\) với học sinh đã lưu.
-Vạch tương đương sau chuyển đổi đạt.
-Lệch lớn nhất giữa Keras và file float TFLite trên 10{,}000 ảnh kiểm tra là \(1.7583370208740234\times 10^{-6}\), dưới ngưỡng \(1\times 10^{-4}\), theo \texttt{results/equivalence.json}.
-Vạch này kiểm một lần trên mô hình float, trước lượng tử hoá, không kiểm theo từng dòng.
+Bảng~\ref{tab:results} đủ để chấm ba vạch trên Fashion-MNIST, nhưng không đủ để kết luận ngoài phạm vi đó. Các hạn chế chia thành ba nhóm: dữ liệu và seed, phép đo, và chính các phép nén.
 
-Ba giới hạn thuộc về phép nén, không thuộc về máy đo.
-Pruning ghi đủ mảng float, nên kích thước thô của dòng pruned vẫn là 1690.108 KB.
-Một định dạng thưa mới làm cột thô giảm theo độ thưa.
-INT8 trong bài là PTQ.
-Lưới lượng tử không có mặt lúc huấn luyện, nên mô hình không được sửa để né các mã bị kẹp.
-Huấn luyện có lượng tử hóa (quantization-aware training, QAT) là bước tiếp theo cho chính mô hình gốc, trước khi xếp thêm pruning.
-Bảng đã chốt chỉ giữ một cặp distillation: \(T=4\), \(\alpha=0.5\), 8 kênh, lệch 0.37 pp so với nhãn cứng.
-Mục~\ref{sec:sweep} đổi từng nút quanh điểm đã chốt và lặp năm seed tại tâm.
-Lần quét không đo độ trễ.
-Distillation không cho phần tăng đáng tin trong thiết lập này.
+\textbf{Dữ liệu và seed.} Mọi dòng dùng một tập ảnh và một lần chia 54{,}000 / 6{,}000 / 10{,}000. Huấn luyện không bit-deterministic trên thiết lập này: chạy lại seed 42 cho 0.8996 thay vì 0.8985 ở tâm distilled. Vì vậy độ lệch chuẩn của năm seed (42 đến 46, Mục~\ref{sec:sweep}) được dùng làm khoảng bất định khi đọc các lệch. Ngoài ra, cấu hình xếp đã chỉnh được chọn sau khi xem test accuracy, không có bước chọn riêng trên validation, và lần xếp chỉ đổi \(s_f\) với học sinh đã lưu chưa được chạy.
 
-Việc chưa làm gồm bốn hướng.
-Thứ nhất là QAT cho INT8, rồi đo lại độ giảm so với 0.08 pp của PTQ trên mô hình gốc.
-Thứ hai là chạy cùng các file trên Open Neural Network Exchange Runtime (ONNX Runtime), để tách phần do file nhỏ khỏi phần do thông dịch TFLite.
-Thứ ba là lặp seed cho các độ rộng khác và cho dòng xếp ba bước.
-Năm seed của tâm học sinh đã có ở Mục~\ref{sec:sweep}.
-Thứ tư là đo p50, p95 và bộ nhớ đỉnh trên một thiết bị biên thật, thay cho CPU một luồng của lần đo này.
-Ba hướng còn lại chưa có số, nên báo cáo không ước lượng chúng.
-Số của năm seed nằm ở Mục~\ref{sec:sweep}.
+\textbf{Phép đo.} Độ trễ được đo trên một CPU (13th Gen Intel Core i9-13900HX), một luồng, một ảnh. Do đó các giá trị như 0.008 ms hay 0.179 ms chỉ cho thứ tự trên máy này, chưa phải trên vi điều khiển hay điện thoại. Bộ nhớ đỉnh là \texttt{VmHWM} sau khi trừ sàn 34944 kB (trung vị của 34932, 34944 và 35108 kB). Vì cả tám dòng dùng cùng cách trừ, cột bộ nhớ vẫn so sánh được giữa các dòng. Vạch tương đương sau chuyển đổi chỉ được kiểm một lần trên mô hình float, trước lượng tử hoá (sai lệch \(1.758\times 10^{-6}\) trên 10{,}000 ảnh kiểm tra), không kiểm theo từng dòng.
+
+\textbf{Phép nén.} Pruning vẫn ghi đủ mảng float, nên kích thước thô của dòng pruned giữ nguyên 1690.108 KB; một định dạng lưu thưa sẽ làm cột thô giảm theo độ thưa. INT8 trong bài là PTQ, nên lưới lượng tử không có mặt lúc huấn luyện và mô hình không được điều chỉnh để tránh các giá trị bị kẹp. Distillation chỉ giữ một cấu hình trong bảng chốt (\(T=4\), \(\alpha=0.5\), 8 kênh, lệch 0.37 pp so với nhãn cứng); lần quét quanh điểm này không đo độ trễ, và trên năm seed distillation không cho phần tăng đáng tin.
+
+\textbf{Hướng tiếp.} Có bốn hướng chưa làm. Thứ nhất, huấn luyện có lượng tử hoá (quantization-aware training, QAT) cho mô hình gốc, rồi so độ giảm với 0.08 pp của PTQ, trước khi xếp thêm pruning. Thứ hai, chạy cùng các mô hình trên Open Neural Network Exchange Runtime (ONNX Runtime) để tách phần lợi do mô hình nhỏ khỏi phần do bộ thông dịch TFLite. Thứ ba, lặp seed cho các độ rộng khác và cho dòng xếp ba bước. Thứ tư, đo p50, p95 và bộ nhớ đỉnh trên một thiết bị biên thật. Các hướng này chưa có số, nên báo cáo không ước lượng kết quả của chúng.
 
 \section{Kết luận}
 
-Ba vạch là độ giảm không quá 2 pp so với 0.9158, phần cắt kích thước không dưới 50 phần trăm trên cả kích thước thô (mẫu số 1690.108 KB) và gzip (mẫu số 1567.603 KB), và tương đương sau chuyển đổi: sai lệch đầu ra lớn nhất Keras vs TFLite (float, trước lượng tử hoá) không quá \(1\times 10^{-4}\).
-Vạch thứ ba đạt một lần: lệch đã lưu là \(1.7583370208740234\times 10^{-6}\), theo \texttt{results/equivalence.json}.
-Năm dòng nén qua cả ba vạch trên dòng: small from-scratch, INT8, distilled student, pruned INT8 và distilled pruned INT8.
-Dòng pruned qua vạch độ chính xác (giảm 0.59 pp) và vạch gzip (cắt 60.31 phần trăm), và FAIL ở vạch thô vì phần cắt thô là 0.00 phần trăm, kích thước thô vẫn là 1690.108 KB, và p50 tăng lên 0.179 ms.
-Dòng stacked, default config qua vạch thô (cắt 93.41 phần trăm) và vạch gzip (cắt 96.84 phần trăm), và FAIL ở vạch độ chính xác: accuracy 0.8855, giảm 3.03 pp.
-INT8 của mô hình gốc sát mốc nhất: độ chính xác 0.9150, giảm 0.08 pp, cắt thô 74.44 phần trăm, cắt 75.56 phần trăm gzip, và p50 giảm từ 0.155 ms xuống 0.068 ms.
-Pruned INT8 đạt cả ba vạch trên dòng, với giảm 0.56 pp, cắt thô 74.44 phần trăm và cắt 88.39 phần trăm gzip.
-Hai học sinh 8 kênh cùng đạt cả ba vạch trên dòng.
-Hai học sinh 8 kênh trong bảng đã chốt lệch 0.37 pp, và kích thước thô của cả hai vẫn là 415.612 KB.
-Cặp 0.9011 và 0.8974 là một seed; trên năm seed phần tăng là \(-0.0009 \pm 0.0041\) (Mục~\ref{sec:sweep}), nên không có phần tăng đáng tin.
-Trong các dòng PASS cả ba vạch trên dòng, học sinh sau pruning ở độ thưa 0.30 rồi INT8 là gzip nhỏ nhất: độ chính xác 0.8992, giảm 1.66 pp, cắt thô 93.41 phần trăm, cắt 94.45 phần trăm gzip, và p50 bằng 0.008 ms.
-Cấu hình mặc định cắt thô 93.41 phần trăm và cắt gzip nhiều hơn, 96.84 phần trăm, và FAIL vì giảm 3.03 pp.
-Trên mô hình rộng, xếp pruning với INT8 gần như không cộng thêm độ giảm.
-Trên học sinh đã nhỏ, pruning ở độ thưa 0.30 chỉ làm độ giảm tăng thêm 0.19 pp so với 1.47 pp của chính học sinh đó.
+Ba vạch đạt yêu cầu gồm: độ giảm accuracy không quá 2 pp so với 0.9158; phần cắt kích thước không dưới 50\% trên cả kích thước thô (mẫu số 1690.108 KB) và gzip (mẫu số 1567.603 KB); và sai lệch đầu ra lớn nhất giữa Keras và TFLite (mô hình float, trước lượng tử hoá) không quá \(10^{-4}\). Vạch thứ ba được kiểm tra một lần và đạt, với sai lệch \(1.758 \times 10^{-6}\).
+
+Năm dòng nén đạt cả ba vạch: small from-scratch, INT8, distilled student, pruned INT8 và distilled pruned INT8. INT8 của mô hình gốc sát mốc nhất (0.9150, giảm 0.08 pp, cắt thô 74.44\%, cắt gzip 75.56\%), đồng thời p50 giảm từ 0.155 ms xuống 0.068 ms. Distilled pruned INT8 (độ thưa 0.30) có gzip nhỏ nhất trong các dòng đạt (0.8992, giảm 1.66 pp, cắt thô 93.41\%, cắt gzip 94.45\%).
+
+Hai dòng không đạt. Pruned đạt vạch accuracy và gzip nhưng không đạt vạch thô, vì các số không vẫn được lưu nên kích thước thô giữ nguyên 1690.108 KB. Stacked với cấu hình mặc định cắt nhiều nhất (93.41\% thô, 96.84\% gzip) nhưng giảm 3.03 pp, vượt vạch accuracy.
+
+Distillation không cho phần tăng đáng tin: cặp 0.9011 và 0.8974 chỉ là một seed, còn trên năm seed phần tăng là \(-0.0009 \pm 0.0041\) (Mục 7). Pruning xếp trước INT8 gần như không cộng thêm độ giảm, kể cả trên học sinh đã nhỏ (chỉ thêm 0.19 pp so với 1.47 pp của học sinh).
 
 \clearpage
 \renewcommand{\refname}{Tài liệu tham khảo}
@@ -1359,58 +1323,28 @@ TensorFlow, ``Post-training quantization,'' TensorFlow Lite converter in TensorF
 
 \section{Tuyên bố sử dụng trí tuệ nhân tạo}
 
-Grok được dùng để soạn cấu trúc phép đo, bố cục thư mục, và bản nháp báo cáo này.
-Công cụ của lần đo: Python 3.11.15, TensorFlow 2.21.0, \texttt{tf\_keras} 2.21.0, TFMOT 0.8.1, bộ chuyển TFLite của TensorFlow 2.21.0, Grok CLI 1.0.88; Grok Bot (bản dùng tháng 11/2026).
-Grok Bot được dùng để giải thích pruning, INT8 PTQ, knowledge distillation, và cách đọc p50, p95 cùng \texttt{VmHWM}.
-Mọi số ở Mục 6 được lấy từ bảng kết quả đã chốt.
-Số ở mục phân tích độ nhạy lấy từ lần quét một nút.
-Bảng kết quả ghi dòng xếp đã chỉnh và dòng cấu hình mặc định.
-Tôi đã đối chiếu từng số đó với cột của bảng trước khi giữ nó trong báo cáo.
-Các ví dụ tính tay ở Mục 3 không phải số đo.
 
-\appendix
-\setcounter{secnumdepth}{0}
-\section{Phụ lục A: Tệp, cột dữ liệu và khả năng tái lập}
+Công cụ của lần đo: Python 3.11.15, TensorFlow 2.21.0, \texttt{tf\_keras} 2.21.0, TFMOT 0.8.1, bộ chuyển TFLite của TensorFlow 2.21.0, Grok CLI 1.0.88 và Grok Bot (bản dùng tháng 11/2026). Bảng~\ref{tab:ai_use} tóm tắt vai trò của từng công cụ theo giai đoạn.
 
-Sáu dòng đầu của bảng kết quả là phần so sánh cuối của sổ đo.
-Dòng distilled pruned INT8 là lần xếp đã chỉnh, pruning với độ thưa cuối 0.30, rồi INT8.
-Dòng stacked, default config là lần xếp cùng thứ tự với độ thưa cuối 0.70.
-File \texttt{results/results.csv} ghi đúng tám dòng đang in, từng cột.
-Độ chính xác, độ giảm, kích thước, p50, p95 và bộ nhớ đỉnh trong báo cáo là đúng các cột \texttt{test\_acc}, \texttt{acc\_drop\_pp}, \texttt{raw\_KB}, \texttt{raw\_MB}, \texttt{gzip\_KB}, \texttt{gzip\_MB}, \texttt{size\_cut\_pct}, \texttt{p50\_ms}, \texttt{p95\_ms} và \texttt{peak\_mem\_kB}.
-Cột \texttt{size\_cut\_pct} là phần cắt gzip.
-Phần cắt thô không có cột trong CSV.
-Báo cáo tính \(1 - \texttt{raw\_KB} / 1690.108\), với 1690.108 là \texttt{raw\_KB} của float baseline.
-\begin{table}[H]
+\begin{table}[h]
 \centering
-\caption{File .tflite đã đo cho float baseline, small from-scratch, pruned, INT8, distilled student, pruned INT8, distilled pruned INT8 và stacked, default config.}
-\label{tab:files}
-\begin{tabularx}{\textwidth}{|l|Y|}
+\caption{Vai trò của Grok Bot và Grok CLI theo từng giai đoạn của đồ án}
+\label{tab:ai_use}
+\begin{tabular}{|p{2.6cm}|p{2cm}|p{4.6cm}|p{4.6cm}|}
 \hline
-Dòng & File \\ \hline
-float baseline & \texttt{current/baseline\_v2.tflite} \\ \hline
-small from-scratch & \texttt{test/v3\_student\_hard.tflite} \\ \hline
-pruned & \texttt{test/v3\_pruned.tflite} \\ \hline
-INT8 & \texttt{test/v3\_int8.tflite} \\ \hline
-distilled student & \texttt{test/v3\_distill.tflite} \\ \hline
-pruned INT8 & \texttt{test/v3\_pruned\_int8.tflite} \\ \hline
-distilled pruned INT8 & \texttt{test/stack\_distill\_prune\_int8\_20261118-124701.tflite} \\ \hline
-stacked, default config & \texttt{test/v3\_distill\_pruned\_int8.tflite} \\ \hline
-\end{tabularx}
+\textbf{Giai đoạn} & \textbf{Công cụ} & \textbf{AI hỗ trợ} & \textbf{Người làm} \\
+\hline
+Lập kế hoạch & Grok Bot & Đề xuất thứ tự các bước và cấu trúc phép đo (mốc, một nút mỗi lần, vạch đạt) & Chọn phương pháp, thứ tự và các vạch theo yêu cầu đề bài \\
+\hline
+Tìm hiểu & Grok Bot & Giải thích pruning, INT8 PTQ, knowledge distillation, cách đọc p50, p95 và \texttt{VmHWM} & Tự giải thích lại từng khái niệm và kiểm tra với bài báo gốc \\
+\hline
+Viết mã & Grok CLI & Viết mã huấn luyện, nén, chuyển đổi, đo và bố cục thư mục & Quyết định từng bước cần chạy, đọc kết quả và yêu cầu sửa \\
+\hline
+Viết báo cáo & Grok Bot & Soạn bản nháp và gợi ý câu chữ cho từng mục & Viết lại các mục và đối chiếu từng số với bảng kết quả đã chốt \\
+\hline
+\end{tabular}
 \end{table}
 
-Mô hình gốc được nạp từ \texttt{locked/baseline.keras}.
-SHA-256 của file này là\\
-\texttt{a7d3dc90da3bbf12aaece24ab57a014a}\\
-\texttt{216f3cff326d20c0d146434e69dfdb7b}.\\
-Bản sao khóa \texttt{locked/baseline\_v2\_locked.keras} có cùng mã băm.
-File này không bị ghi trong lần đo.
-Mẫu số gzip là gzip của file float baseline trong bảng trên, bằng 1{,}567{,}603 byte, tức 1567.603 KB ở cột \texttt{gzip\_KB}.
-Mẫu số thô là 1690.108 KB ở cột \texttt{raw\_KB} của cùng dòng.
-Các số ở Mục~\ref{sec:sweep} không thuộc tám dòng trên.
-Chúng nằm ở \texttt{results/sweep.csv}.
-Mỗi dòng của file đó đổi một nút và giữ các nút còn lại ở giá trị đã chốt.
-Lần quét không đo p50, p95 hay bộ nhớ đỉnh.
-
-Báo cáo được dịch bằng XeTeX với font Liberation, vì T5 Latin Modern trên máy này không có glyph tiếng Việt.
+Mọi số ở Mục 6 lấy từ bảng kết quả đã chốt, và số ở mục phân tích độ nhạy lấy từ lần quét một nút; số liệu đã được đối chiếu với cột của bảng trước khi giữ trong báo cáo. Các ví dụ tính tay ở Mục 3 là minh hoạ, không phải số đo.
 
 \end{document}
