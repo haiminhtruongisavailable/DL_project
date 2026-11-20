@@ -7,7 +7,6 @@ Bản nộp này lấy file đã đóng băng ngày 2026-11-20, rồi thêm mode
 ## Thư mục
 
 - `report/`: báo cáo (`main.tex`) và `DL10_report_final.pdf` (33 trang).
-- `slides/`: slide (`slides.tex`) và `DL10_slides_final.pdf` (12 trang).
 - `notebook/`: `dl10_v3.ipynb`. Mở sổ với thư mục làm việc là `notebook/`. Khi đó `ROOT` là thư mục cha, tức gốc repo này.
 - `results/`: `results.csv` (tám dòng đã chốt), `sweep.csv` (quét một nút), `equivalence.json` (lệch Keras–TFLite đã lưu).
 - `scripts/`: `check_equivalence.py`. Script chỉ đọc model, không ghi `locked/`.
