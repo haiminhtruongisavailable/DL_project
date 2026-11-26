@@ -1,0 +1,242 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{fontspec}
+\setsansfont{Liberation Sans}
+\setmonofont{Liberation Mono}[Scale=0.85]
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\usetheme{default}
+\setbeamercolor{structure}{fg=black}
+\setbeamercolor{frametitle}{bg=blue!12!white,fg=black}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamersize{text margin left=0.7cm,text margin right=0.7cm}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+
+\begin{document}
+
+\begin{frame}{CNN Compression on Fashion-MNIST}
+  \vspace{0.35cm}
+  {\Large\bfseries CNN Compression on Fashion-MNIST:\\[0.25em]
+  Pruning, INT8 PTQ and Distillation\par}
+  \vspace{0.55cm}
+  Trương Hải Minh\\[0.35em]
+  Course: Học sâu\\
+  Instructor: TS. Nguyễn Văn Tới\\
+  Phenikaa University\\[0.45em]
+  26 November 2026
+\end{frame}
+
+\begin{frame}[t]{Motivation and contents}
+  \setlength{\itemsep}{2pt}%
+  \begin{itemize}
+    \item Smaller file and faster inference on edge devices.
+    \item Baseline trained from scratch. Test accuracy 0.9158. Every drop is measured against it.
+    \item A row passes only when all three bars hold.
+  \end{itemize}
+  \vspace{0.25em}
+  \begin{center}
+  \fbox{\scriptsize
+  \begin{tabular}{@{}l@{}}
+    accuracy drop \(\le 2\) pp\\
+    raw cut \(\ge 50\%\)\\
+    gzip cut \(\ge 50\%\)
+  \end{tabular}}
+  \end{center}
+  \vspace{0.2em}
+  {\scriptsize
+  \begin{columns}[t,onlytextwidth]
+  \begin{column}{0.22\textwidth}
+    \textbf{Method}
+    \begin{itemize}\setlength{\itemsep}{1pt}
+      \item Pruning
+      \item INT8 PTQ
+      \item Distillation
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.18\textwidth}
+    \textbf{Pipeline}
+    \begin{itemize}\setlength{\itemsep}{1pt}
+      \item Pipelines
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.38\textwidth}
+    \textbf{Measurements}
+    \begin{itemize}\setlength{\itemsep}{1pt}
+      \item Accuracy loss vs gzip size
+      \item File size: raw vs gzip
+      \item Latency p50
+      \item Latency p95
+      \item Peak memory
+      \item Results
+    \end{itemize}
+  \end{column}
+  \begin{column}{0.20\textwidth}
+    \textbf{Conclusion}
+    \begin{itemize}\setlength{\itemsep}{1pt}
+      \item Conclusion
+      \item References
+    \end{itemize}
+  \end{column}
+  \end{columns}}
+  \note{The three bars are an accuracy drop of at most 2 pp against 0.9158, a raw-size cut of at least 50 percent (denominator 1690.108 KB), and a gzip cut of at least 50 percent (denominator 1567.603 KB). The report also checks, once, that the largest Keras versus TFLite probability difference on the float model is at most \(10^{-4}\). That check passes at \(1.758\times 10^{-6}\).}
+\end{frame}
+
+\input{methods}
+
+\begin{frame}[t]{Pipelines}
+  \centering
+  \begin{tikzpicture}[
+      font=\scriptsize,
+      file/.style={draw, rounded corners=1.5pt, align=center,
+                   text width=2.85cm, minimum height=0.56cm,
+                   inner sep=2pt, fill=black!6},
+      last/.style={file, fill=black!14},
+      arr/.style={-{Stealth[length=1.6mm]}, thin},
+      tag/.style={font=\scriptsize, inner sep=1pt, fill=white}
+    ]
+    \node[file, text width=3.2cm] (base) at (0,0) {float baseline};
+    \node[file] (pr) at (-4.35,-1.48) {pruned};
+    \node[file] (st) at (4.35,-1.48) {distilled student};
+    \node[last] (pi) at (-4.35,-3.05) {pruned INT8};
+    \node[last] (i8) at (0,-3.05) {INT8};
+    \node[last, text width=3.55cm, minimum height=0.76cm] (sk) at (4.35,-3.05)
+      {distilled pruned INT8\\stacked, default config};
+    \draw[arr] (base.south) -- (pr.north);
+    \draw[arr] (base.south) -- (i8.north);
+    \draw[arr] (base.south) -- (st.north);
+    \node[tag, anchor=south east] at (-1.95,-0.48) {pruning};
+    \node[tag, anchor=west] at (0.12,-1.35) {INT8};
+    \node[tag, anchor=south west] at (1.95,-0.48) {distillation};
+    \draw[arr] (pr.south) -- (pi.north);
+    \node[tag] at (-4.35,-2.26) {INT8};
+    \draw[arr] (st.south) -- (sk.north);
+    \node[tag] at (4.35,-2.22) {pruning, then INT8};
+    \node[draw, rounded corners=1.5pt, fill=black!4, align=center,
+          text width=12.35cm, minimum height=0.50cm, inner sep=2pt, font=\scriptsize]
+      (meas) at (0,-4.15)
+      {one measurement: accuracy, .tflite size, gzip, p50, p95, peak memory};
+    \draw[arr] (pi.south) -- (pi.south |- meas.north);
+    \draw[arr] (i8.south) -- (i8.south |- meas.north);
+    \draw[arr] (sk.south) -- (sk.south |- meas.north);
+  \end{tikzpicture}\\[2pt]
+  {\scriptsize Pipelines: pruning, INT8 PTQ, distillation and their stacks; all rows share one measurement.\par}
+  \vspace{1pt}
+  {\scriptsize small from-scratch: same architecture as the distilled student, trained without the baseline.\par}
+\end{frame}
+
+\begin{frame}[t]{Accuracy loss vs gzip size}
+  \centering
+  \includegraphics[width=0.75\textwidth,height=5.05cm,keepaspectratio]{figures/gzip_vs_loss.png}\\[1pt]
+  {\scriptsize Gzip size of the .tflite file (KB, byte/1000) and test-accuracy drop (pp) for float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8, and stacked, default config. Dashed lines: 2 pp and a 50\% gzip cut.\par}
+  \vspace{2pt}
+  {\small Inside both bars: small from-scratch, pruned, INT8, distilled student, pruned INT8, and distilled pruned INT8. stacked, default config is above 2 pp (FAIL).\par}
+  \note{The dashed horizontal line is the 2 pp bar. The dashed vertical line is a 50 percent gzip cut of the baseline gzip, 1567.603 KB. This plot does not draw the raw-size bar. pruned is inside both drawn lines (drop 0.59 pp, gzip cut 60.31 percent) and fails raw (raw cut 0.00 percent). stacked, default config drops 3.03 pp, with gzip 49.483 KB.}
+\end{frame}
+
+\begin{frame}[t]{File size: raw vs gzip}
+  \centering
+  \includegraphics[width=0.75\textwidth,height=5.15cm,keepaspectratio]{figures/raw_vs_gzip.png}\\[1pt]
+  {\scriptsize Raw .tflite size (KB, byte/1000) and gzip size (KB) for float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8, and stacked, default config.\par}
+  \vspace{2pt}
+  {\small Pruned shrinks only after gzip: raw stays 1690.108 KB and gzip falls to 622.146 KB. INT8 cuts raw size to 431.992 KB.\par}
+  \note{Baseline and pruned share raw size 1690.108 KB. INT8 and pruned INT8 share raw size 431.992 KB; pruned INT8 gzip is 181.994 KB and INT8 gzip is 383.123 KB. The two students share raw size 415.612 KB. Both stacks share raw size 111.424 KB.}
+\end{frame}
+
+\begin{frame}[t]{Latency p50}
+  \centering
+  \includegraphics[width=0.75\textwidth,height=5.15cm,keepaspectratio]{figures/p50.png}\\[1pt]
+  {\scriptsize Median latency (p50), in milliseconds, on one test image, for float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8, and stacked, default config.\par}
+  \vspace{2pt}
+  {\small Distilled pruned INT8 is lowest at 0.008 ms. Pruned is 0.179 ms, above the baseline at 0.155 ms.\par}
+  \note{batch = 1, one thread, median of three runs.}
+\end{frame}
+
+\begin{frame}[t]{Latency p95}
+  \centering
+  \includegraphics[width=0.75\textwidth,height=5.15cm,keepaspectratio]{figures/p95.png}\\[1pt]
+  {\scriptsize 95th-percentile latency (p95), in milliseconds, on one test image, for float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8, and stacked, default config.\par}
+  \vspace{2pt}
+  {\small Pruned is 0.261 ms, above the baseline at 0.226 ms. Distilled pruned INT8 is lowest at 0.009 ms.\par}
+  \note{batch = 1, one thread, median of three runs.}
+\end{frame}
+
+\begin{frame}[t]{Peak memory}
+  \centering
+  \includegraphics[width=0.75\textwidth,height=5.15cm,keepaspectratio]{figures/peak_mem.png}\\[1pt]
+  {\scriptsize Peak memory (kB) for float baseline, small from-scratch, pruning, INT8 post-training quantization (INT8 PTQ), distillation, pruned INT8, distilled pruned INT8, and stacked, default config.\par}
+  \vspace{2pt}
+  {\small Pruned is highest at 7244 kB, above the baseline at 7108 kB. Distilled pruned INT8 is lowest at 4012 kB.\par}
+  \note{VmHWM minus empty process. Each value is the median of three model processes minus the median of three empty processes.}
+\end{frame}
+
+\begin{frame}[t]{Results}
+  \vspace{0.35em}
+  \begin{center}
+  {\scriptsize
+  \setlength{\tabcolsep}{3.2pt}%
+  \begin{tabular}{@{}lrrrrrrl@{}}
+  \toprule
+  Method & Acc. & Drop & Raw & Gzip & Raw cut & Gzip cut & Result \\
+   &  & (pp) & (KB) & (KB) & (\%) & (\%) &  \\
+  \midrule
+  float baseline & 0.9158 & 0.00 & 1690.108 & 1567.603 & 0.00 & 0.00 & reference \\
+  small from-scratch & 0.8974 & 1.84 & 415.612 & 384.088 & 75.41 & 75.50 & PASS \\
+  pruned & 0.9099 & 0.59 & 1690.108 & 622.146 & 0.00 & 60.31 & FAIL (raw) \\
+  INT8 & 0.9150 & 0.08 & 431.992 & 383.123 & 74.44 & 75.56 & PASS \\
+  distilled student & 0.9011 & 1.47 & 415.612 & 384.058 & 75.41 & 75.50 & PASS \\
+  pruned INT8 & 0.9102 & 0.56 & 431.992 & 181.994 & 74.44 & 88.39 & PASS \\
+  distilled pruned INT8 & 0.8992 & 1.66 & 111.424 & 87.025 & 93.41 & 94.45 & PASS \\
+  stacked, default config & 0.8855 & 3.03 & 111.424 & 49.483 & 93.41 & 96.84 & FAIL (acc) \\
+  \bottomrule
+  \end{tabular}\par}
+  \end{center}
+  \vspace{0.15em}
+  {\scriptsize Test accuracy, drop against 0.9158, raw size, gzip size, raw cut, gzip cut, and the three-bar result. Methods: float baseline, small from-scratch, pruning, INT8 PTQ, distillation, pruned INT8, distilled pruned INT8, and stacked, default config.\par}
+  \note{KB is byte/1000. The baseline row is the reference, not a scored row. PASS requires a drop of at most 2 pp, a raw cut of at least 50 percent, and a gzip cut of at least 50 percent. FAIL (raw) misses the raw bar. FAIL (acc) misses the accuracy bar.}
+\end{frame}
+
+\begin{frame}[t]{Conclusion}
+  \footnotesize
+  \setlength{\itemsep}{1pt}%
+  \textbf{Pass bars}
+  \begin{itemize}
+    \item Accuracy drop at most 2 pp against 0.9158.
+    \item Raw cut at least 50\% (denominator 1690.108 KB).
+    \item Gzip cut at least 50\% (denominator 1567.603 KB).
+  \end{itemize}
+  \vspace{0.15em}
+  \textbf{Rows that pass}
+  \begin{itemize}
+    \item small from-scratch, INT8, distilled student, pruned INT8, and distilled pruned INT8.
+    \item INT8 is closest to the baseline: 0.9150, drop 0.08 pp, raw cut 74.44\%, gzip cut 75.56\%.
+    \item distilled pruned INT8 has the smallest gzip among the passing rows: drop 1.66 pp, raw cut 93.41\%, gzip cut 94.45\%.
+  \end{itemize}
+  \vspace{0.15em}
+  \textbf{Rows that fail}
+  \begin{itemize}
+    \item Pruned passes accuracy and gzip, and fails raw: the raw file stays 1690.108 KB.
+    \item stacked, default config cuts the most (raw 93.41\%, gzip 96.84\%) and fails accuracy: drop 3.03 pp.
+  \end{itemize}
+  \vspace{0.12em}
+  Pruning before INT8 barely adds more drop, even on the small student (only 0.19 pp on top of the student's 1.47 pp).
+  \vspace{0.12em}
+  Distillation does not give a reliable gain: the pair 0.9011 and 0.8974 is only one seed, and on five seeds the gain is \(-0.0009 \pm 0.0041\) (Section 7).
+  \note{The report also checks once that the largest Keras versus TFLite probability difference on the float model, before quantization, is at most \(10^{-4}\). The measured difference is \(1.758\times 10^{-6}\).}
+\end{frame}
+
+\begin{frame}{References}
+  \scriptsize
+  \begin{enumerate}\setlength{\itemsep}{0.55em}
+    \item G.~Hinton, O.~Vinyals, and J.~Dean, ``Distilling the knowledge in a neural network,'' arXiv:1503.02531, 2015.
+    \item S.~Han, H.~Mao, and W.~J.~Dally, ``Deep compression: Compressing deep neural networks with pruning, trained quantization and Huffman coding,'' in \textit{Proc. Int. Conf. Learn. Represent. (ICLR)}, 2016.
+    \item B.~Jacob \textit{et al.}, ``Quantization and training of neural networks for efficient integer-arithmetic-only inference,'' in \textit{Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR)}, 2018, pp.~2704--2713.
+  \end{enumerate}
+\end{frame}
+
+\end{document}

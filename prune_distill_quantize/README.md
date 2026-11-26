@@ -7,7 +7,7 @@ Bản nộp cuối, ngày 2026-11-21. Báo cáo không còn Phụ lục A. Ánh 
 ## Thư mục
 
 - `GUIDE.md`: tệp đã đo, cột của `results.csv`, mẫu số kích thước, và mã băm của `locked/baseline.keras`.
-- `report/`: báo cáo (`main.tex`), `figures/`, và `DL10_report_final.pdf` (35 trang).
+- `report/`: báo cáo (`main.tex`), `figures/`, và `DL10_report_final.pdf` (36 trang).
 - `notebook/`: `dl10_v3.ipynb`. Mở sổ với thư mục làm việc là `notebook/`. Khi đó `ROOT` là thư mục cha, tức gốc repo này.
 - `results/`: `results.csv` (tám dòng đã chốt), `sweep.csv` (quét một nút), `equivalence.json` (lệch Keras–TFLite đã lưu).
 - `scripts/`: `check_equivalence.py`. Script chỉ đọc model, không ghi `locked/`.

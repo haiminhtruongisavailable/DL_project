@@ -645,9 +645,32 @@ assert len(x_tr) == 54000 and len(x_val) == 6000 and len(x_te) == 10000
 \end{verbatim}
 }
 
+Mô hình gốc được viết thành mạng tuần tự dưới đây.
+Đầu vào là ảnh \(28\times 28\times 1\).
+Hai lớp tích chập có 32 kênh rồi 64 kênh, kernel cạnh 3, đệm same, và rectified linear unit (ReLU).
+Sau mỗi lớp tích chập là một lần gộp cực đại.
+Phần còn lại là trải phẳng, tầng dày 128 đơn vị với ReLU, Dropout 0.3, và tầng dày 10 đơn vị với softmax.
+Biến \texttt{baseline} là mạng này.
+
+\nopagebreak
+{\fontsize{8}{9.2}\selectfont
+\begin{verbatim}
+baseline = tf_keras.Sequential([
+    tf_keras.layers.Input((28, 28, 1)),
+    tf_keras.layers.Conv2D(32, 3, activation="relu", padding="same"),
+    tf_keras.layers.MaxPooling2D(),
+    tf_keras.layers.Conv2D(64, 3, activation="relu", padding="same"),
+    tf_keras.layers.MaxPooling2D(),
+    tf_keras.layers.Flatten(),
+    tf_keras.layers.Dense(128, activation="relu"),
+    tf_keras.layers.Dropout(0.3),
+    tf_keras.layers.Dense(10, activation="softmax"),
+])
+\end{verbatim}
+}
+
 Mô hình học sinh 8 kênh có tích chập 8 kênh, gộp cực đại, tích chập 16 kênh, gộp cực đại, trải phẳng, tầng dày 128 đơn vị với rectified linear unit (ReLU), Dropout 0.3, và tầng dày 10 đơn vị với softmax.
 Kernel tích chập có cạnh 3 và đệm same.
-Mô hình gốc không được dựng lại trong lần đo này.
 Mọi dòng nén hoặc nạp lại mô hình gốc, hoặc nạp đúng mạng mà nhánh trước của cùng một thứ tự vừa trả về.
 
 Bảng~\ref{tab:hyper} gom siêu tham số.
